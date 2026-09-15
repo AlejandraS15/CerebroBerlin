@@ -1,6 +1,6 @@
 import { GeoJsonLayer, ScatterplotLayer } from "@deck.gl/layers";
 import { HeatmapLayer } from "@deck.gl/aggregation-layers";
-import type { Layer, PickingInfo } from "@deck.gl/core";
+import type { Color, Layer, PickingInfo } from "@deck.gl/core";
 import type {
   CityDataset,
   District,
@@ -26,7 +26,7 @@ export interface HoverInfo {
   lines: string[];
 }
 
-const MODE_COLOR: Record<TransitStation["mode"], [number, number, number]> = {
+const MODE_COLOR: Record<TransitStation["mode"], Color> = {
   u: [37, 99, 235], // U-Bahn azul
   s: [22, 163, 74], // S-Bahn verde
   tram: [220, 38, 38],
@@ -34,7 +34,7 @@ const MODE_COLOR: Record<TransitStation["mode"], [number, number, number]> = {
 };
 
 /** Rampa de color para densidad demográfica (ámbar → rojo). */
-function densityColor(density: number): [number, number, number, number] {
+function densityColor(density: number): Color {
   const t = Math.min(1, density / 15000);
   const r = Math.round(120 + t * 135);
   const g = Math.round(110 - t * 70);
@@ -43,7 +43,7 @@ function densityColor(density: number): [number, number, number, number] {
 }
 
 /** Color por severidad de hotspot. */
-const SEVERITY_COLOR: Record<number, [number, number, number]> = {
+const SEVERITY_COLOR: Record<number, Color> = {
   1: [250, 204, 21],
   2: [251, 146, 60],
   3: [248, 113, 113],
@@ -63,16 +63,21 @@ export function buildDeckLayers({
   const layers: Layer[] = [];
 
   // ── Demografía: coropletas de distritos (siempre base para clicks) ──
+  // Accessor tipado explícitamente para evitar la colisión de la unión
+  // `Color | Accessor<Feature, Color>` en los tipos de deck.gl v9.
+  const districtFill: (f: DistrictFeature) => Color = (f) =>
+    densityColor(f.properties.density);
+
   layers.push(
     new GeoJsonLayer({
       id: "districts",
-      data: data.districts.features,
+      data: data.districts.features as unknown as DistrictFeature[],
       visible: visibility.demographics,
       pickable: true,
       stroked: true,
       filled: true,
       extruded: false,
-      getFillColor: (f: DistrictFeature) => densityColor(f.properties.density),
+      getFillColor: districtFill as unknown as Color,
       getLineColor: [34, 211, 238, 180],
       lineWidthMinPixels: 1,
       onClick: (info: PickingInfo) => {
@@ -217,7 +222,10 @@ export function buildDeckLayers({
       radiusMaxPixels: 22,
       getPosition: (d) => d.position,
       getRadius: (d) => 140 + d.severity * 120 * (0.6 + activity),
-      getFillColor: (d) => [...SEVERITY_COLOR[d.severity], 170] as [number, number, number, number],
+      getFillColor: (d) => {
+        const [r, g, b] = SEVERITY_COLOR[d.severity];
+        return [r, g, b, 170] as Color;
+      },
       getLineColor: [255, 255, 255, 220],
       lineWidthMinPixels: 1,
       stroked: true,
