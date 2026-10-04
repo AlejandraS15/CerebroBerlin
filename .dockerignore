@@ -1,0 +1,36 @@
+# dependencias
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# build de Next.js
+.next
+out
+build
+
+# entornos locales
+.env
+.env*.local
+
+# git y meta
+.git
+.gitignore
+.vercel
+
+# editor / SO
+.DS_Store
+.vscode
+.idea
+
+# docker
+Dockerfile
+Dockerfile.dev
+.dockerignore
+docker-compose*.yml
+
+# docs
+README.md
+
+# typescript
+*.tsbuildinfo

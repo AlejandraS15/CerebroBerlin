@@ -35,6 +35,7 @@ function SourceBadges() {
   const entries: [string, "live" | "mock"][] = [
     ["Transporte", data.source.transit],
     ["Aire", data.source.air],
+    ["Clima", data.source.weather],
     ["Bicis", data.source.bikes],
     ["Distritos", data.source.districts],
   ];

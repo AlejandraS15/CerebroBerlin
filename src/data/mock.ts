@@ -5,6 +5,7 @@ import type {
   InfrastructurePoint,
   TimeSeriesPoint,
   TransitStation,
+  WeatherPoint,
 } from "@/lib/types";
 import { DISTRICT_LIST } from "./districts";
 
@@ -53,13 +54,33 @@ export const MOCK_BIKES: BikeStation[] = DISTRICT_LIST.flatMap((d, di) =>
 export const MOCK_AIR: AirQualityPoint[] = DISTRICT_LIST.map((d, i) => {
   const pm25 = Math.round(6 + (d.aqi / 3) + (i % 4) * 2);
   const no2 = Math.round(10 + (d.aqi / 2) + (i % 3) * 4);
+  const o3 = Math.round(30 + (i % 5) * 8 + (d.greenSpacePct / 4));
   return {
     id: `air-${d.id}`,
     location: `Sensor ${d.name}`,
     position: d.centroid,
     pm25,
     no2,
+    o3,
     aqi: d.aqi,
+    updatedAt: new Date().toISOString(),
+  };
+});
+
+// ─────────────────────────────────────────────────────────────
+// Clima por distrito (fallback offline de Open-Meteo)
+// ─────────────────────────────────────────────────────────────
+const WEATHER_CODES = [0, 1, 2, 3, 45, 61, 80];
+export const MOCK_WEATHER: WeatherPoint[] = DISTRICT_LIST.map((d, i) => {
+  const seed = i * 5 + 3;
+  return {
+    id: `wx-${d.id}`,
+    location: d.name,
+    position: d.centroid,
+    temperature: Math.round((9 + (seed % 8) - (i % 3)) * 10) / 10,
+    humidity: 55 + ((seed * 3) % 35),
+    windSpeed: Math.round((6 + (seed % 14)) * 10) / 10,
+    weatherCode: WEATHER_CODES[i % WEATHER_CODES.length],
     updatedAt: new Date().toISOString(),
   };
 });
@@ -121,6 +142,9 @@ export function buildTimeSeries(): TimeSeriesPoint[] {
     const energyDemand = Math.round(
       850 + Math.sin(((hour - 6) / 24) * Math.PI * 2) * 220 + rush * 120,
     );
+    // Curva diaria de temperatura: mínima ~5h, máxima ~15h.
+    const temperature =
+      Math.round((11 + Math.sin(((hour - 9) / 24) * Math.PI * 2) * 6) * 10) / 10;
     return {
       hour,
       label: `${String(hour).padStart(2, "0")}:00`,
@@ -128,6 +152,7 @@ export function buildTimeSeries(): TimeSeriesPoint[] {
       aqi,
       bikeUsage,
       energyDemand,
+      temperature,
     };
   });
 }

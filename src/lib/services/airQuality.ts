@@ -1,22 +1,22 @@
-import { CONFIG, BERLIN_BBOX } from "@/lib/config";
+import { CONFIG } from "@/lib/config";
 import { safeFetchJson } from "@/lib/http";
 import type { AirQualityPoint } from "@/lib/types";
 import { MOCK_AIR } from "@/data/mock";
+import { DISTRICT_LIST } from "@/data/districts";
 
-// Estructura parcial de la respuesta de OpenAQ v3 /locations.
-interface OpenAqLocation {
-  id: number;
-  name: string;
-  coordinates?: { latitude: number; longitude: number };
-  sensors?: { parameter?: { name?: string }; }[];
-  measurements?: { parameter: string; value: number }[];
-}
-interface OpenAqResponse {
-  results?: OpenAqLocation[];
+// Respuesta parcial de Open-Meteo Air Quality (/air-quality con current=...).
+interface OpenMeteoAir {
+  current?: {
+    pm2_5?: number;
+    nitrogen_dioxide?: number;
+    ozone?: number;
+    european_aqi?: number;
+  };
 }
 
 /**
  * Convierte PM2.5 (µg/m³) a un AQI aproximado (escala EPA simplificada).
+ * Se mantiene como utilidad de respaldo cuando la API no entrega AQI europeo.
  */
 export function pm25ToAqi(pm25: number): number {
   const bp = [
@@ -35,8 +35,20 @@ export function pm25ToAqi(pm25: number): number {
   return 500;
 }
 
+/** Construye la URL de Open-Meteo Air Quality para una coordenada. */
+export function buildAirQualityUrl(lat: number, lon: number): string {
+  const params = new URLSearchParams({
+    latitude: String(lat),
+    longitude: String(lon),
+    current: "pm2_5,nitrogen_dioxide,ozone,european_aqi",
+  });
+  return `${CONFIG.airQualityApiBase}/air-quality?${params.toString()}`;
+}
+
 /**
- * Calidad del aire desde OpenAQ para el bbox de Berlín, con fallback a mock.
+ * Calidad del aire real por distrito vía Open-Meteo Air Quality (sin token).
+ * Consulta un punto (centroide) por distrito en paralelo. Si todas fallan,
+ * degrada a los datos mock. Devuelve PM2.5, NO2, O3 y AQI europeo.
  */
 export async function fetchAirQuality(): Promise<{
   data: AirQualityPoint[];
@@ -44,33 +56,27 @@ export async function fetchAirQuality(): Promise<{
 }> {
   if (CONFIG.useMockData) return { data: MOCK_AIR, source: "mock" };
 
-  const bbox = `${BERLIN_BBOX.west},${BERLIN_BBOX.south},${BERLIN_BBOX.east},${BERLIN_BBOX.north}`;
-  const url = `${CONFIG.openaqApiBase}/locations?bbox=${bbox}&limit=40`;
-  const headers: Record<string, string> = {};
-  if (process.env.OPENAQ_API_KEY) headers["X-API-Key"] = process.env.OPENAQ_API_KEY;
-
-  const raw = await safeFetchJson<OpenAqResponse>(url, { headers });
-  const results = raw?.results ?? [];
-  if (results.length === 0) return { data: MOCK_AIR, source: "mock" };
-
-  const data: AirQualityPoint[] = results
-    .filter((r) => r.coordinates)
-    .map((r) => {
-      const pm25 =
-        r.measurements?.find((m) => m.parameter === "pm25")?.value ?? 10;
-      const no2 =
-        r.measurements?.find((m) => m.parameter === "no2")?.value ?? 20;
-      return {
-        id: String(r.id),
-        location: r.name,
-        position: [r.coordinates!.longitude, r.coordinates!.latitude] as [number, number],
-        pm25: Math.round(pm25),
-        no2: Math.round(no2),
-        aqi: pm25ToAqi(pm25),
+  const results = await Promise.all(
+    DISTRICT_LIST.map(async (d) => {
+      const [lon, lat] = d.centroid;
+      const raw = await safeFetchJson<OpenMeteoAir>(buildAirQualityUrl(lat, lon));
+      const c = raw?.current;
+      if (!c || c.pm2_5 == null) return null;
+      const point: AirQualityPoint = {
+        id: `air-${d.id}`,
+        location: `Sensor ${d.name}`,
+        position: d.centroid,
+        pm25: Math.round(c.pm2_5),
+        no2: Math.round(c.nitrogen_dioxide ?? 0),
+        o3: Math.round(c.ozone ?? 0),
+        aqi: Math.round(c.european_aqi ?? pm25ToAqi(c.pm2_5)),
         updatedAt: new Date().toISOString(),
       };
-    });
+      return point;
+    }),
+  );
 
+  const data = results.filter((p): p is AirQualityPoint => p !== null);
   return data.length > 0
     ? { data, source: "live" }
     : { data: MOCK_AIR, source: "mock" };

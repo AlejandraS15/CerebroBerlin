@@ -16,10 +16,18 @@ export const LAYER_CATALOG: LayerCategory[] = [
   {
     id: "air",
     label: "Calidad del Aire",
-    description: "PM2.5, NO2 y AQI por sensor (heatmap).",
+    description: "PM2.5, NO2, O3 y AQI europeo por sensor (heatmap).",
     icon: "🌫️",
     color: "#a78bfa",
     defaultVisible: true,
+  },
+  {
+    id: "weather",
+    label: "Clima",
+    description: "Temperatura, humedad y viento por distrito (Open-Meteo).",
+    icon: "🌡️",
+    color: "#38bdf8",
+    defaultVisible: false,
   },
   {
     id: "demographics",
@@ -47,11 +55,23 @@ export const LAYER_CATALOG: LayerCategory[] = [
   },
 ];
 
-/** Vista inicial de la cámara centrada en Berlín. */
+/** Vista 2D panorámica: toda la ciudad, cenital. */
 export const BERLIN_VIEW = {
   longitude: 13.405,
   latitude: 52.52,
   zoom: 10.4,
-  pitch: 45,
+  pitch: 0,
   bearing: 0,
+};
+
+/**
+ * Vista 3D a escala urbana (Museumsinsel / Unter den Linden). Los edificios
+ * solo existen a partir de z13, por eso la vista 3D se acerca a la ciudad.
+ */
+export const CITY_3D_VIEW = {
+  longitude: 13.4015,
+  latitude: 52.5185,
+  zoom: 14.6,
+  pitch: 60,
+  bearing: -17,
 };

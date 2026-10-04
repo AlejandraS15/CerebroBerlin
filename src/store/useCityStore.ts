@@ -40,7 +40,9 @@ export const useCityStore = create<CityState>((set) => ({
   setLayer: (id, visible) =>
     set((s) => ({ layerVisibility: { ...s.layerVisibility, [id]: visible } })),
 
-  selectedHour: new Date().getHours(),
+  // Valor determinista para evitar desajustes de hidratación (server vs client).
+  // La hora real del navegador se aplica tras el montaje (ver useTimelinePlayer).
+  selectedHour: 12,
   setSelectedHour: (h) => set({ selectedHour: h }),
 
   isPlaying: false,

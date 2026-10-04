@@ -6,6 +6,7 @@
 export type LayerId =
   | "mobility"
   | "air"
+  | "weather"
   | "demographics"
   | "infrastructure"
   | "hotspots";
@@ -56,6 +57,18 @@ export interface DistrictFeatureCollection {
   features: DistrictFeature[];
 }
 
+/** Próxima salida en tiempo real de una estación. */
+export interface Departure {
+  /** Nombre de la línea (p. ej. "U8", "S7"). */
+  line: string;
+  /** Destino del servicio. */
+  direction: string;
+  /** Hora planificada (ISO) o null si no disponible. */
+  when: string | null;
+  /** Retraso en minutos (positivo = tarde), o null. */
+  delayMin: number | null;
+}
+
 /** Estación de transporte público (U-Bahn / S-Bahn). */
 export interface TransitStation {
   id: string;
@@ -64,6 +77,8 @@ export interface TransitStation {
   mode: "u" | "s" | "tram" | "bus";
   lines: string[];
   position: [number, number]; // [lng, lat]
+  /** Próximas salidas en tiempo real (opcional, solo estaciones clave). */
+  departures?: Departure[];
 }
 
 /** Vehículo/estación de micromovilidad (GBFS). */
@@ -84,8 +99,26 @@ export interface AirQualityPoint {
   pm25: number;
   /** NO2 en µg/m³. */
   no2: number;
-  /** Índice AQI derivado 0-500. */
+  /** Ozono O3 en µg/m³. */
+  o3: number;
+  /** Índice AQI (escala europea 0-100+, mayor = peor). */
   aqi: number;
+  updatedAt: string;
+}
+
+/** Condiciones meteorológicas en un punto (distrito). */
+export interface WeatherPoint {
+  id: string;
+  location: string;
+  position: [number, number];
+  /** Temperatura del aire en °C. */
+  temperature: number;
+  /** Humedad relativa en %. */
+  humidity: number;
+  /** Velocidad del viento en km/h. */
+  windSpeed: number;
+  /** Código de tiempo WMO (0 despejado … 95 tormenta). */
+  weatherCode: number;
   updatedAt: string;
 }
 
@@ -116,6 +149,7 @@ export interface TimeSeriesPoint {
   aqi: number; // calidad del aire
   bikeUsage: number; // viajes en bici
   energyDemand: number; // MW estimados
+  temperature: number; // °C (real de Open-Meteo cuando hay red)
 }
 
 /** KPI mostrado en el dashboard. */
@@ -136,6 +170,7 @@ export interface CityDataset {
   transit: TransitStation[];
   bikes: BikeStation[];
   air: AirQualityPoint[];
+  weather: WeatherPoint[];
   hotspots: Hotspot[];
   infrastructure: InfrastructurePoint[];
   timeSeries: TimeSeriesPoint[];
@@ -144,6 +179,7 @@ export interface CityDataset {
     transit: "live" | "mock";
     bikes: "live" | "mock";
     air: "live" | "mock";
+    weather: "live" | "mock";
     districts: "live" | "mock";
   };
 }

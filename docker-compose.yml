@@ -1,0 +1,53 @@
+# ─────────────────────────────────────────────────────────────
+# docker-compose — Gemelo Digital de Berlín
+#
+# Perfiles:
+#   dev  -> desarrollo con hot-reload (next dev)
+#   prod -> imagen optimizada de producción (next start / standalone)
+#
+# Uso:
+#   docker compose --profile dev up        # desarrollo
+#   docker compose --profile prod up --build   # producción
+#
+# Las variables opcionales se leen de .env.local si existe.
+# ─────────────────────────────────────────────────────────────
+
+services:
+  # Desarrollo con recarga en caliente ---------------------------
+  web-dev:
+    profiles: ["dev"]
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      # HOST:CONTENEDOR — el contenedor SIEMPRE sirve en 3000.
+      # Cambia solo el puerto del host (izquierda) con la var HOST_PORT.
+      - "${HOST_PORT:-8080}:3000"
+    volumes:
+      # Monta el código para hot-reload
+      - .:/app
+      # Mantiene node_modules dentro del contenedor (no lo pisa el host)
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+      - WATCHPACK_POLLING=true # ayuda al hot-reload en algunos sistemas de archivos
+    env_file:
+      - path: .env.local
+        required: false
+
+  # Producción ---------------------------------------------------
+  web:
+    profiles: ["prod"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      # HOST:CONTENEDOR — el contenedor SIEMPRE sirve en 3000.
+      - "${HOST_PORT:-8080}:3000"
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - path: .env.local
+        required: false
+    restart: unless-stopped

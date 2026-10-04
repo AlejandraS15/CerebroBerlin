@@ -13,7 +13,7 @@ Interfaz moderna, responsiva y en **modo oscuro por defecto**.
 
 ## ✨ Características
 
-- **Mapa central interactivo** (MapLibre GL + Deck.gl): zoom, rotación, vista 3D, *heatmaps* y marcadores.
+- **Mapa central interactivo** (MapLibre GL + Deck.gl): terreno 3D con relieve, edificios extruidos con su altura real (OSM), cielo con niebla de horizonte, *heatmaps* y marcadores.
 - **Sidebar / Panel lateral**:
   - **Layer Control**: Movilidad, Calidad del Aire, Demografía, Infraestructura, Puntos Críticos.
   - **Dashboard analítico**: KPIs en tiempo real y gráficos dinámicos (Recharts).
@@ -71,12 +71,14 @@ berlin-digital-twin/
 │   ├── hooks/
 │   │   ├── useCityData.ts       # Query principal (fetchCityData)
 │   │   ├── useAnalytics.ts      # Derivación de KPIs y series
+│   │   ├── useMapStyle.ts       # Carga (una vez) el estilo 3D del mapa
 │   │   └── useTimelinePlayer.ts # Autoplay del timeline
 │   ├── lib/
 │   │   ├── config.ts            # Config desde env + BBOX Berlín
 │   │   ├── http.ts              # safeFetchJson (timeout + fallback)
 │   │   ├── format.ts            # Formatos y clasificación (AQI…)
-│   │   ├── layers.ts            # Catálogo de capas + vista inicial
+│   │   ├── layers.ts            # Catálogo de capas + vistas 2D/3D
+│   │   ├── mapStyle.ts          # Estilo 3D: terreno, relieve, edificios, cielo
 │   │   ├── types.ts             # Tipos centrales
 │   │   └── services/
 │   │       ├── airQuality.ts    # OpenAQ
@@ -99,11 +101,13 @@ berlin-digital-twin/
 
 | Dominio | Fuente | Servicio |
 |---------|--------|----------|
-| Transporte público (U/S-Bahn, bus) | **VBB / BVG** vía [`v6.vbb.transport.rest`](https://v6.vbb.transport.rest) | `services/transit.ts` |
-| Calidad del aire (PM2.5, NO2, AQI) | **OpenAQ v3** | `services/airQuality.ts` |
+| Transporte público (U/S-Bahn, bus) + salidas en tiempo real | **VBB / BVG** vía [`v6.vbb.transport.rest`](https://v6.vbb.transport.rest) | `services/transit.ts` |
+| Calidad del aire (PM2.5, NO2, O3, AQI europeo) | **Open-Meteo Air Quality** | `services/airQuality.ts` |
+| Clima (temperatura, humedad, viento) | **Open-Meteo Forecast** | `services/weather.ts` |
 | Micromovilidad (bicis/scooters) | **GBFS** (Nextbike/TIER…) | `services/bikeshare.ts` |
 | Catastro, demografía, uso de suelo | **Datenportal Berlin** (`daten.berlin.de` / CKAN) | `services/openData.ts` |
-| Cartografía base | **OpenStreetMap** vía MapLibre | `lib/config.ts` |
+| Cartografía base + edificios 3D | **OpenFreeMap** (OpenMapTiles / OpenStreetMap) | `lib/mapStyle.ts` |
+| Terreno (modelo de elevación) | **Mapzen / AWS Terrarium** | `lib/mapStyle.ts` |
 
 > Los límites de distritos usan geometrías simplificadas empaquetadas para
 > funcionar *offline*. Para producción, sustitúyelas por los límites oficiales
@@ -135,7 +139,81 @@ npm run build      # Build de producción
 npm run start      # Servir el build
 npm run lint       # ESLint (next/core-web-vitals)
 npm run typecheck  # Comprobación de tipos (tsc --noEmit)
+npm run test       # Tests unitarios (Vitest, ejecución única)
+npm run test:watch # Tests en modo watch
 ```
+
+### Tests
+
+Los tests unitarios (Vitest) cubren la capa de datos: utilidades de formato,
+mapeo y fallback de los servicios (aire, clima, transporte) y la construcción
+de capas del mapa. No hacen llamadas de red reales — `safeFetchJson` se
+mockea, así que corren sin conexión.
+
+```bash
+# Con Docker (sin instalar nada en tu máquina):
+docker compose --profile dev run --rm web-dev npm run test
+
+# O en local si tienes node_modules:
+npm run test
+```
+
+---
+
+## 🐳 Ejecución con Docker (sin instalar dependencias en tu máquina)
+
+Con Docker no necesitas Node.js ni `npm install` en tu equipo: todo vive dentro
+del contenedor. Solo requieres **Docker Desktop** (o Docker Engine + el plugin
+`docker compose`) en ejecución.
+
+Archivos incluidos:
+
+| Archivo | Propósito |
+|---------|-----------|
+| `Dockerfile` | Imagen de **producción** optimizada (multi-stage + Next.js `standalone`) |
+| `Dockerfile.dev` | Imagen de **desarrollo** con hot-reload (`next dev`) |
+| `docker-compose.yml` | Orquesta ambos servicios mediante *profiles* |
+| `.dockerignore` | Excluye `node_modules`, `.next`, etc. del contexto de build |
+
+### Desarrollo (hot-reload)
+
+```bash
+docker compose --profile dev up --build
+#   → http://localhost:3000
+```
+
+El código local se monta como volumen, así que los cambios se reflejan en vivo.
+`node_modules` y `.next` quedan dentro del contenedor y no tocan tu máquina.
+
+### Producción
+
+```bash
+docker compose --profile prod up --build
+#   → http://localhost:3000
+```
+
+### (Opcional) Variables de entorno
+
+Si quieres configurar APIs, copia el ejemplo; Docker lo cargará automáticamente
+si el archivo existe:
+
+```bash
+cp .env.example .env.local
+```
+
+### Comandos útiles
+
+```bash
+docker compose --profile dev down      # detener y limpiar contenedores (dev)
+docker compose --profile prod down     # detener y limpiar (prod)
+
+# Construir solo la imagen de producción (sin compose)
+docker build -t berlin-digital-twin .
+docker run -p 3000:3000 berlin-digital-twin
+```
+
+> Nota: la app usa el output `standalone` de Next.js (configurado en
+> `next.config.mjs`) para producir una imagen de producción ligera.
 
 ---
 
@@ -145,10 +223,11 @@ Todas las variables son **opcionales**:
 
 | Variable | Descripción | Por defecto |
 |----------|-------------|-------------|
-| `NEXT_PUBLIC_MAP_STYLE_URL` | Estilo de mapa MapLibre | demotiles (OSM) |
+| `NEXT_PUBLIC_MAP_STYLE_URL` | Estilo base MapLibre (esquema OpenMapTiles) | OpenFreeMap dark |
+| `NEXT_PUBLIC_TERRAIN_TILES_URL` | Teselas DEM Terrarium para el terreno 3D | Mapzen/AWS Terrarium |
 | `NEXT_PUBLIC_VBB_API_BASE` | Base de la API de VBB | `v6.vbb.transport.rest` |
-| `NEXT_PUBLIC_OPENAQ_API_BASE` | Base de OpenAQ | `api.openaq.org/v3` |
-| `OPENAQ_API_KEY` | API key de OpenAQ (si aplica) | — |
+| `NEXT_PUBLIC_AIR_QUALITY_API_BASE` | Base de Open-Meteo (aire) | `air-quality-api.open-meteo.com/v1` |
+| `NEXT_PUBLIC_WEATHER_API_BASE` | Base de Open-Meteo (clima) | `api.open-meteo.com/v1` |
 | `NEXT_PUBLIC_BERLIN_OPENDATA_BASE` | CKAN de Berlín | `datenregister.berlin.de/api/3` |
 | `NEXT_PUBLIC_GBFS_URL` | Feed GBFS de micromovilidad | Nextbike |
 | `NEXT_PUBLIC_USE_MOCK_DATA` | Forzar datos mock (`true`/`false`) | `false` |

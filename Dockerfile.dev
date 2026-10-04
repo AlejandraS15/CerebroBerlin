@@ -1,0 +1,26 @@
+# syntax=docker/dockerfile:1
+
+# ─────────────────────────────────────────────────────────────
+# Dockerfile de desarrollo — corre "next dev" con hot-reload.
+# Las dependencias viven dentro del contenedor, no en tu máquina.
+# ─────────────────────────────────────────────────────────────
+
+FROM node:20-alpine
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+# Instala dependencias primero (cache de capas)
+COPY package.json package-lock.json* ./
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+
+# El resto del código se monta como volumen en docker-compose,
+# pero lo copiamos también para que la imagen funcione por sí sola.
+COPY . .
+
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev"]

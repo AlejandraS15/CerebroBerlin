@@ -10,6 +10,10 @@ export interface Analytics {
   avgAqi: number;
   totalBikes: number;
   transitCount: number;
+  /** Temperatura media actual (°C) o null si no hay datos de clima. */
+  avgTemperature: number | null;
+  /** Viento medio actual (km/h) o null. */
+  avgWind: number | null;
   /** Distribución de modos de transporte para gráfico. */
   modeSplit: { name: string; value: number }[];
   /** AQI por distrito para barras. */
@@ -36,6 +40,22 @@ export function useAnalytics(
     );
     const totalBikes = data.bikes.reduce((s, b) => s + b.bikesAvailable, 0);
     const transitCount = data.transit.length;
+
+    const weather = data.weather ?? [];
+    const avgTemperature =
+      weather.length > 0
+        ? Math.round(
+            (weather.reduce((s, w) => s + w.temperature, 0) / weather.length) *
+              10,
+          ) / 10
+        : null;
+    const avgWind =
+      weather.length > 0
+        ? Math.round(
+            (weather.reduce((s, w) => s + w.windSpeed, 0) / weather.length) *
+              10,
+          ) / 10
+        : null;
 
     const point =
       data.timeSeries.find((t) => t.hour === hour) ?? data.timeSeries[0];
@@ -116,6 +136,20 @@ export function useAnalytics(
         trend: "flat",
         tone: data.hotspots.length > 6 ? "bad" : "warn",
       },
+      {
+        id: "weather",
+        label: "Temperatura media",
+        value: avgTemperature != null ? String(avgTemperature) : "—",
+        unit: " °C",
+        delta: avgWind != null ? `Viento ${avgWind} km/h` : "sin datos",
+        trend: "flat",
+        tone:
+          avgTemperature == null
+            ? "neutral"
+            : avgTemperature < 0 || avgTemperature > 30
+              ? "warn"
+              : "good",
+      },
     ];
 
     return {
@@ -124,6 +158,8 @@ export function useAnalytics(
       avgAqi,
       totalBikes,
       transitCount,
+      avgTemperature,
+      avgWind,
       modeSplit,
       aqiByDistrict,
       densityByDistrict,

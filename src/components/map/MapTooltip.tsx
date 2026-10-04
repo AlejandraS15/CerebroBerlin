@@ -6,6 +6,7 @@ const KIND_COLOR: Record<HoverInfo["kind"], string> = {
   district: "#f59e0b",
   transit: "#22d3ee",
   air: "#a78bfa",
+  weather: "#38bdf8",
   bike: "#22d3ee",
   hotspot: "#fb7185",
   infra: "#34d399",

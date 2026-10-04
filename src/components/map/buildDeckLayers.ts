@@ -2,12 +2,16 @@ import { GeoJsonLayer, ScatterplotLayer } from "@deck.gl/layers";
 import { HeatmapLayer } from "@deck.gl/aggregation-layers";
 import type { Color, Layer, PickingInfo } from "@deck.gl/core";
 import type {
+  AirQualityPoint,
   CityDataset,
   District,
   DistrictFeature,
   LayerId,
   TransitStation,
+  WeatherPoint,
 } from "@/lib/types";
+import { weatherCodeLabel } from "@/lib/services/weather";
+import { DATA_ELEVATION_M } from "@/lib/mapStyle";
 
 interface BuildArgs {
   data: CityDataset;
@@ -21,7 +25,14 @@ interface BuildArgs {
 export interface HoverInfo {
   x: number;
   y: number;
-  kind: "district" | "transit" | "air" | "bike" | "hotspot" | "infra";
+  kind:
+    | "district"
+    | "transit"
+    | "air"
+    | "weather"
+    | "bike"
+    | "hotspot"
+    | "infra";
   title: string;
   lines: string[];
 }
@@ -33,13 +44,33 @@ const MODE_COLOR: Record<TransitStation["mode"], Color> = {
   bus: [168, 85, 247],
 };
 
-/** Rampa de color para densidad demográfica (ámbar → rojo). */
+/**
+ * Eleva un punto a la cota media del terreno. deck.gl centra su cámara en la
+ * superficie del relieve, así que a z=0 los datos quedarían bajo el suelo.
+ */
+function onTerrain([lng, lat]: [number, number]): [number, number, number] {
+  return [lng, lat, DATA_ELEVATION_M];
+}
+
+/**
+ * Rampa de color para densidad demográfica (ámbar → rojo). Semitransparente:
+ * el overlay se pinta encima del mapa y no debe tapar los edificios 3D.
+ */
 function densityColor(density: number): Color {
   const t = Math.min(1, density / 15000);
   const r = Math.round(120 + t * 135);
   const g = Math.round(110 - t * 70);
   const b = Math.round(40 + (1 - t) * 20);
-  return [r, g, b, 150];
+  return [r, g, b, 80];
+}
+
+/** Rampa de color por temperatura (azul frío → rojo cálido), -5°C..35°C. */
+function temperatureColor(temp: number): Color {
+  const t = Math.min(1, Math.max(0, (temp + 5) / 40));
+  const r = Math.round(40 + t * 215);
+  const g = Math.round(120 - Math.abs(t - 0.5) * 120);
+  const b = Math.round(230 - t * 200);
+  return [r, g, b, 200];
 }
 
 /** Color por severidad de hotspot. */
@@ -109,7 +140,7 @@ export function buildDeckLayers({
       id: "air-heat",
       data: data.air,
       visible: visibility.air,
-      getPosition: (d) => d.position,
+      getPosition: (d) => onTerrain(d.position),
       getWeight: (d) => d.aqi,
       radiusPixels: 70,
       intensity: 1 + activity,
@@ -125,6 +156,41 @@ export function buildDeckLayers({
     }),
   );
 
+  // Puntos de sensores de aire (pickables) para mostrar el detalle al pasar.
+  layers.push(
+    new ScatterplotLayer({
+      id: "air-points",
+      data: data.air,
+      visible: visibility.air,
+      pickable: true,
+      radiusMinPixels: 4,
+      radiusMaxPixels: 12,
+      getPosition: (d) => onTerrain(d.position),
+      getRadius: 60,
+      getFillColor: [167, 139, 250, 160],
+      getLineColor: [255, 255, 255, 180],
+      lineWidthMinPixels: 1,
+      stroked: true,
+      onHover: (info) => {
+        const d = info.object as AirQualityPoint | undefined;
+        if (d) {
+          onHover({
+            x: info.x,
+            y: info.y,
+            kind: "air",
+            title: d.location,
+            lines: [
+              `AQI (EU): ${d.aqi}`,
+              `PM2.5: ${d.pm25} µg/m³`,
+              `NO₂: ${d.no2} µg/m³`,
+              `O₃: ${d.o3} µg/m³`,
+            ],
+          });
+        } else onHover(null);
+      },
+    }),
+  );
+
   // ── Movilidad: estaciones de transporte + micromovilidad ──
   layers.push(
     new ScatterplotLayer({
@@ -134,15 +200,22 @@ export function buildDeckLayers({
       pickable: true,
       radiusMinPixels: 4,
       radiusMaxPixels: 14,
-      getPosition: (d) => d.position,
+      getPosition: (d: TransitStation) => onTerrain(d.position),
       getRadius: 90,
-      getFillColor: (d) => MODE_COLOR[d.mode],
+      getFillColor: (d: TransitStation) => MODE_COLOR[d.mode],
       getLineColor: [255, 255, 255, 200],
       lineWidthMinPixels: 1,
       stroked: true,
       onHover: (info) => {
         const d = info.object as TransitStation | undefined;
         if (d) {
+          const dep = (d.departures ?? []).slice(0, 3).map((x) => {
+            const delay =
+              x.delayMin != null && x.delayMin !== 0
+                ? ` (${x.delayMin > 0 ? "+" : ""}${x.delayMin}′)`
+                : "";
+            return `${x.line} → ${x.direction}${delay}`;
+          });
           onHover({
             x: info.x,
             y: info.y,
@@ -151,6 +224,7 @@ export function buildDeckLayers({
             lines: [
               `${d.mode.toUpperCase()}-Bahn`,
               d.lines.length ? `Líneas: ${d.lines.join(", ")}` : "—",
+              ...(dep.length ? ["Próximas salidas:", ...dep] : []),
             ],
           });
         } else onHover(null);
@@ -166,7 +240,7 @@ export function buildDeckLayers({
       pickable: true,
       radiusMinPixels: 2,
       radiusMaxPixels: 8,
-      getPosition: (d) => d.position,
+      getPosition: (d) => onTerrain(d.position),
       getRadius: 45,
       getFillColor: [34, 211, 238, 200],
       onHover: (info) => {
@@ -193,7 +267,7 @@ export function buildDeckLayers({
       pickable: true,
       radiusMinPixels: 3,
       radiusMaxPixels: 10,
-      getPosition: (d) => d.position,
+      getPosition: (d) => onTerrain(d.position),
       getRadius: 70,
       getFillColor: [52, 211, 153, 210],
       onHover: (info) => {
@@ -220,7 +294,7 @@ export function buildDeckLayers({
       pickable: true,
       radiusMinPixels: 6,
       radiusMaxPixels: 22,
-      getPosition: (d) => d.position,
+      getPosition: (d) => onTerrain(d.position),
       getRadius: (d) => 140 + d.severity * 120 * (0.6 + activity),
       getFillColor: (d) => {
         const [r, g, b] = SEVERITY_COLOR[d.severity];
@@ -243,6 +317,41 @@ export function buildDeckLayers({
               `Tipo: ${d.type}`,
               `Distrito: ${d.district}`,
               `Severidad: ${"●".repeat(d.severity)}`,
+            ],
+          });
+        } else onHover(null);
+      },
+    }),
+  );
+
+  // ── Clima: puntos por distrito coloreados por temperatura ──
+  layers.push(
+    new ScatterplotLayer({
+      id: "weather",
+      data: data.weather,
+      visible: visibility.weather,
+      pickable: true,
+      radiusMinPixels: 6,
+      radiusMaxPixels: 20,
+      getPosition: (d) => onTerrain(d.position),
+      getRadius: 200,
+      getFillColor: (d) => temperatureColor(d.temperature),
+      getLineColor: [255, 255, 255, 160],
+      lineWidthMinPixels: 1,
+      stroked: true,
+      onHover: (info) => {
+        const d = info.object as WeatherPoint | undefined;
+        if (d) {
+          onHover({
+            x: info.x,
+            y: info.y,
+            kind: "weather",
+            title: d.location,
+            lines: [
+              weatherCodeLabel(d.weatherCode),
+              `Temperatura: ${d.temperature} °C`,
+              `Humedad: ${d.humidity} %`,
+              `Viento: ${d.windSpeed} km/h`,
             ],
           });
         } else onHover(null);
