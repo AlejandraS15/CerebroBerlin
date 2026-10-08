@@ -21,6 +21,9 @@ export const CONFIG = {
   weatherApiBase:
     process.env.NEXT_PUBLIC_WEATHER_API_BASE ||
     "https://api.open-meteo.com/v1",
+  // Berliner Luftgütemessnetz (BLUME): estaciones de medición reales, sin token.
+  luftgueteApiBase:
+    process.env.NEXT_PUBLIC_LUFTGUETE_API_BASE || "https://luftdaten.berlin.de",
   berlinOpenDataBase:
     process.env.NEXT_PUBLIC_BERLIN_OPENDATA_BASE ||
     "https://datenregister.berlin.de/api/3",

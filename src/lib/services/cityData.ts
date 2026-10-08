@@ -1,73 +1,78 @@
-import type { CityDataset, TimeSeriesPoint, WeatherPoint } from "@/lib/types";
+/**
+ * Compone el snapshot completo de datos de la ciudad (`CityDataset`).
+ *
+ * Ejecuta en paralelo los servicios en vivo (aire, estaciones, horario, clima,
+ * bicis, transporte); cada uno degrada a mock por su cuenta, así que esta
+ * función nunca falla. Los límites de distrito y el perfil de tráfico vienen
+ * del lago (`snapshot`); hotspots e infraestructura son datos de ejemplo
+ * (`example`). La serie de 24 h se arma con `buildTimeSeries(perfil, horario)`.
+ */
+
+import type { BlockId, CityDataset, Origin } from "@/lib/types";
 import { fetchAirQuality } from "./airQuality";
+import { fetchAirStations } from "./luftguete";
+import { fetchHourly } from "./hourly";
 import { fetchTransit } from "./transit";
 import { fetchBikeshare } from "./bikeshare";
 import { fetchWeather } from "./weather";
 import { fetchDistricts } from "./openData";
-import { MOCK_HOTSPOTS, MOCK_INFRA, MOCK_TIMESERIES } from "@/data/mock";
+import { buildTimeSeries } from "./timeSeries";
+import { MOCK_HOTSPOTS, MOCK_INFRA } from "@/data/mock";
+import { trafficProfile, trafficDetectors, lakeProbado } from "@/data/lake";
 
-const round1 = (n: number) => Math.round(n * 10) / 10;
-
-/**
- * Desplaza la curva sintética de temperatura para que su media coincida con la
- * temperatura media observada en el clima real. Si no hay clima, devuelve la
- * serie base sin cambios. Mantiene la forma diaria (mínimo de madrugada, pico
- * de tarde) pero la centra en el valor real.
- */
-function shiftSeriesToObservedTemp(
-  series: TimeSeriesPoint[],
-  weather: WeatherPoint[],
-): TimeSeriesPoint[] {
-  if (weather.length === 0 || series.length === 0) return series;
-
-  const observedAvg =
-    weather.reduce((s, w) => s + w.temperature, 0) / weather.length;
-  const baseAvg =
-    series.reduce((s, p) => s + p.temperature, 0) / series.length;
-  const shift = observedAvg - baseAvg;
-
-  return series.map((p) => ({
-    ...p,
-    temperature: round1(p.temperature + shift),
-  }));
-}
-
-/**
- * Compone el snapshot completo de datos de la ciudad ejecutando todos los
- * servicios en paralelo. Cada servicio ya trae su propio fallback a mock,
- * por lo que esta función nunca falla; solo agrega.
- */
 export async function fetchCityData(): Promise<CityDataset> {
-  const [air, transit, bikes, weather, districts] = await Promise.all([
+  const districts = fetchDistricts(); // síncrono (lago)
+  const [air, airStations, hourly, transit, bikes, weather] = await Promise.all([
     fetchAirQuality(),
+    fetchAirStations(),
+    fetchHourly(),
     fetchTransit(),
     fetchBikeshare(),
     fetchWeather(),
-    fetchDistricts(),
   ]);
 
-  // Enriquecemos la serie temporal con la temperatura real actual (si la hay),
-  // manteniendo la curva diaria sintética como forma base: desplazamos la
-  // curva para que su media coincida con la temperatura observada.
-  const timeSeries = shiftSeriesToObservedTemp(MOCK_TIMESERIES, weather.data);
+  const timeSeries = buildTimeSeries(trafficProfile, hourly.data);
+
+  // `fetchWeather` aún devuelve { data, source }: se normaliza su origen.
+  const weatherOrigin: Origin = weather.source === "live" ? "live" : "mock";
+
+  const source: Record<BlockId, Origin> = {
+    districts: districts.origin,
+    traffic: "snapshot",
+    transit: transit.origin,
+    bikes: bikes.origin,
+    air: air.origin,
+    airStations: airStations.origin,
+    weather: weatherOrigin,
+    hourly: hourly.origin,
+    hotspots: "example",
+    infrastructure: "example",
+  };
+
+  const fetchedAt: Partial<Record<BlockId, string>> = {};
+  const setAt = (id: BlockId, at: string | null) => {
+    if (at) fetchedAt[id] = at;
+  };
+  setAt("districts", districts.fetchedAt);
+  setAt("transit", transit.fetchedAt);
+  setAt("bikes", bikes.fetchedAt);
+  setAt("air", air.fetchedAt);
+  setAt("airStations", airStations.fetchedAt);
+  setAt("hourly", hourly.fetchedAt);
 
   return {
     districts: districts.data,
     transit: transit.data,
     bikes: bikes.data,
     air: air.data,
+    airStations: airStations.data,
+    trafficDetectors,
     weather: weather.data,
-    // Hotspots e infraestructura no tienen aún fuente pública unificada:
-    // se sirven desde el paquete de datos de demostración.
     hotspots: MOCK_HOTSPOTS,
     infrastructure: MOCK_INFRA,
     timeSeries,
-    source: {
-      transit: transit.source,
-      bikes: bikes.source,
-      air: air.source,
-      weather: weather.source,
-      districts: districts.source,
-    },
+    source,
+    fetchedAt,
+    lake: { probado: lakeProbado },
   };
 }

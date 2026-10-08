@@ -9,9 +9,12 @@ import { BUILDINGS_MIN_ZOOM } from "@/lib/mapStyle";
 import { useCityStore } from "@/store/useCityStore";
 import { useCityData } from "@/hooks/useCityData";
 import { useMapStyle } from "@/hooks/useMapStyle";
-import { buildDeckLayers, type HoverInfo } from "./buildDeckLayers";
-import { MapTooltip } from "./MapTooltip";
+import { useTerrainElevation, type TerrainPoint } from "@/hooks/useTerrainElevation";
+import { buildDeckLayers } from "./buildDeckLayers";
+import { HoverTooltip, PinnedTooltipCard } from "./MapTooltip";
 import { DistrictPopup } from "./DistrictPopup";
+import { tooltipFor } from "@/lib/tooltips";
+import type { District, MapTarget } from "@/lib/types";
 
 const CAMERA_2D = { pitch: 0, bearing: 0, duration: 900 };
 
@@ -45,7 +48,13 @@ export function MapContainer() {
   const selectedHour = useCityStore((s) => s.selectedHour);
   const is3D = useCityStore((s) => s.is3D);
   const setSelectedDistrict = useCityStore((s) => s.setSelectedDistrict);
-  const [hover, setHover] = useState<HoverInfo | null>(null);
+  const pinned = useCityStore((s) => s.pinned);
+  const pin = useCityStore((s) => s.pin);
+
+  // Objetivo bajo el puntero y posición del puntero (para el tooltip flotante).
+  const [hoverTarget, setHoverTarget] = useState<MapTarget | null>(null);
+  const pointer = useRef({ x: 0, y: 0 });
+  const [, forceTick] = useState(0);
   const [mapError, setMapError] = useState<string | null>(null);
 
   const mapRef = useRef<MapRef>(null);
@@ -63,26 +72,67 @@ export function MapContainer() {
     map.easeTo(is3D ? cameraFor3D(map) : CAMERA_2D);
   }, [is3D]);
 
-  // "Actividad" derivada de la hora: picos hacia las 8h y 18h.
-  const activity = useMemo(() => {
-    const rush =
-      Math.exp(-((selectedHour - 8) ** 2) / 8) +
-      Math.exp(-((selectedHour - 18) ** 2) / 8);
-    return Math.min(1, rush);
-  }, [selectedHour]);
+  // Puntos de las capas visibles + vértices de distritos para el muestreo de
+  // cotas del terreno. Memoizado por datos (no por hora: las posiciones no
+  // cambian con la hora).
+  const terrainPoints = useMemo<TerrainPoint[]>(() => {
+    if (!data) return [];
+    const pts: TerrainPoint[] = [];
+    for (const f of data.districts.features) {
+      const polys =
+        f.geometry.type === "Polygon"
+          ? [f.geometry.coordinates]
+          : f.geometry.coordinates;
+      for (const poly of polys)
+        for (const ring of poly)
+          for (const v of ring) pts.push([v[0], v[1]]);
+    }
+    for (const a of data.air) pts.push(a.position);
+    for (const s of data.airStations) pts.push(s.position);
+    for (const d of data.trafficDetectors) pts.push(d.position);
+    for (const t of data.transit) pts.push(t.position);
+    for (const b of data.bikes) pts.push(b.position);
+    for (const w of data.weather) pts.push(w.position);
+    for (const h of data.hotspots) pts.push(h.position);
+    for (const p of data.infrastructure) pts.push(p.position);
+    return pts;
+  }, [data]);
+
+  const { sampler, elevationVersion } = useTerrainElevation(mapRef, terrainPoints);
+
+  const onDistrictClick = useCallback(
+    (d: District) => setSelectedDistrict(d),
+    [setSelectedDistrict],
+  );
 
   const layers = useMemo(() => {
     if (!data) return [];
     return buildDeckLayers({
       data,
       visibility,
-      activity,
-      onDistrictClick: setSelectedDistrict,
-      onHover: setHover,
+      hour: selectedHour,
+      sampler,
+      elevationVersion,
+      onDistrictClick,
+      onHover: setHoverTarget,
     });
-  }, [data, visibility, activity, setSelectedDistrict]);
+  }, [data, visibility, selectedHour, sampler, elevationVersion, onDistrictClick]);
 
-  const onMouseLeave = useCallback(() => setHover(null), []);
+  const onMouseMove = useCallback((e: React.MouseEvent) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    pointer.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    // Reposiciona el tooltip flotante sin recomputar las capas.
+    forceTick((t) => (t + 1) % 1_000_000);
+  }, []);
+
+  const onMouseLeave = useCallback(() => setHoverTarget(null), []);
+
+  // Clic sobre un objeto: fijar su tarjeta. Los distritos ya abren el popup
+  // vía `onDistrictClick` de la capa; aquí se fija además la tarjeta.
+  const onClick = useCallback(() => {
+    if (!hoverTarget) return;
+    pin({ ...hoverTarget, anchor: { ...pointer.current }, returnFocusTo: null });
+  }, [hoverTarget, pin]);
 
   const onMapError = useCallback(
     (e: { error?: Error; sourceId?: string }) => {
@@ -97,8 +147,20 @@ export function MapContainer() {
     [],
   );
 
+  // Mientras hay tarjeta fijada del mismo objeto, se suprime el hover.
+  const hoverContent =
+    data && hoverTarget && !(pinned && pinned.kind === hoverTarget.kind && pinned.id === hoverTarget.id)
+      ? tooltipFor(hoverTarget, data, selectedHour)
+      : null;
+  const pinnedContent =
+    data && pinned ? tooltipFor({ kind: pinned.kind, id: pinned.id }, data, selectedHour) : null;
+
   return (
-    <div className="relative h-full w-full" onMouseLeave={onMouseLeave}>
+    <div
+      className="relative h-full w-full"
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
+    >
       {mapStyle ? (
         <Map
           ref={mapRef}
@@ -110,6 +172,7 @@ export function MapContainer() {
           dragRotate
           style={{ width: "100%", height: "100%" }}
           onError={onMapError}
+          onClick={onClick}
         >
           <NavigationControl position="top-left" visualizePitch />
           {/* Overlay separado (no interleaved): los datos se dibujan encima del
@@ -128,12 +191,13 @@ export function MapContainer() {
         </div>
       )}
 
-      <MapTooltip info={hover} />
+      <HoverTooltip content={hoverContent} x={pointer.current.x} y={pointer.current.y} />
+      <PinnedTooltipCard content={pinnedContent} />
       <DistrictPopup />
 
       {/* Atribución requerida por las fuentes del mapa base y del terreno */}
       <div className="pointer-events-none absolute bottom-1 right-2 z-20 text-[10px] text-slate-500">
-        © OpenStreetMap · OpenFreeMap · Mapzen · MapLibre · Deck.gl
+        © OpenStreetMap contributors · OpenFreeMap · Mapzen · MapLibre · Deck.gl
       </div>
 
       {isLoading && (

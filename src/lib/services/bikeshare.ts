@@ -1,6 +1,6 @@
 import { CONFIG, BERLIN_BBOX } from "@/lib/config";
 import { safeFetchJson } from "@/lib/http";
-import type { BikeStation } from "@/lib/types";
+import type { BikeStation, SourceBlock } from "@/lib/types";
 import { MOCK_BIKES } from "@/data/mock";
 
 // ── Tipos parciales del estándar GBFS ──
@@ -39,18 +39,22 @@ function inBerlin(lon: number, lat: number): boolean {
  * Micromovilidad vía GBFS: descubre feeds, une station_information con
  * station_status y filtra al bbox de Berlín. Fallback a mock.
  */
-export async function fetchBikeshare(): Promise<{
-  data: BikeStation[];
-  source: "live" | "mock";
-}> {
-  if (CONFIG.useMockData) return { data: MOCK_BIKES, source: "mock" };
+export async function fetchBikeshare(): Promise<SourceBlock<BikeStation[]>> {
+  if (CONFIG.useMockData) {
+    return { data: MOCK_BIKES, origin: "mock", fetchedAt: null };
+  }
 
   const discovery = await safeFetchJson<GbfsDiscovery>(CONFIG.gbfsUrl);
   const langs = discovery?.data ? Object.values(discovery.data) : [];
   const feeds = langs[0]?.feeds ?? [];
   const infoUrl = feeds.find((f) => f.name === "station_information")?.url;
   const statusUrl = feeds.find((f) => f.name === "station_status")?.url;
-  if (!infoUrl || !statusUrl) return { data: MOCK_BIKES, source: "mock" };
+  const mock = (): SourceBlock<BikeStation[]> => ({
+    data: MOCK_BIKES,
+    origin: "mock",
+    fetchedAt: null,
+  });
+  if (!infoUrl || !statusUrl) return mock();
 
   const [info, status] = await Promise.all([
     safeFetchJson<StationInfo>(infoUrl),
@@ -60,7 +64,7 @@ export async function fetchBikeshare(): Promise<{
   const statusMap = new Map(
     (status?.data?.stations ?? []).map((s) => [s.station_id, s]),
   );
-  if (stations.length === 0) return { data: MOCK_BIKES, source: "mock" };
+  if (stations.length === 0) return mock();
 
   const data: BikeStation[] = stations
     .filter((s) => inBerlin(s.lon, s.lat))
@@ -76,6 +80,6 @@ export async function fetchBikeshare(): Promise<{
     });
 
   return data.length > 0
-    ? { data, source: "live" }
-    : { data: MOCK_BIKES, source: "mock" };
+    ? { data, origin: "live", fetchedAt: new Date().toISOString() }
+    : mock();
 }

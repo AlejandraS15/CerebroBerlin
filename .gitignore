@@ -32,3 +32,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# lago de datos: descargas originales sin procesar (se regeneran con ingesta/)
+/lago/raw/
+
+# python
+__pycache__/
+*.pyc

@@ -1,0 +1,348 @@
+{
+  "cifras": {
+    "bloques": {
+      "fuente": "ua-einwohnerdichte-2024",
+      "unidad": "bloques",
+      "valor": 26426,
+      "vigencia": "2024"
+    },
+    "bloques_sin_edad": {
+      "fuente": "ua-einwohnerdichte-2024",
+      "unidad": "bloques",
+      "valor": 11009,
+      "vigencia": "2024"
+    },
+    "poblacion_total": {
+      "fuente": "ua-einwohnerdichte-2024",
+      "unidad": "hab",
+      "valor": 3896900,
+      "vigencia": "2024"
+    }
+  },
+  "fuentes": [
+    {
+      "estado": "integrado",
+      "id": "ua-einwohnerdichte-2024",
+      "licencia": "Creative Commons Namensnennung 3.0 Deutschland",
+      "nombre": "Einwohnerdichte 2024 (Umweltatlas)",
+      "url": "https://gdi.berlin.de/services/wfs/ua_einwohnerdichte_2024"
+    }
+  ],
+  "por_distrito": {
+    "01": {
+      "cobertura_edad": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 100.0,
+        "vigencia": "2024"
+      },
+      "pct_65_mas": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 13.0,
+        "vigencia": "2024"
+      },
+      "pct_menor_18": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 14.9,
+        "vigencia": "2024"
+      },
+      "poblacion": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "hab",
+        "valor": 397004,
+        "vigencia": "2024"
+      }
+    },
+    "02": {
+      "cobertura_edad": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 100.0,
+        "vigencia": "2024"
+      },
+      "pct_65_mas": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 11.0,
+        "vigencia": "2024"
+      },
+      "pct_menor_18": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 14.8,
+        "vigencia": "2024"
+      },
+      "poblacion": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "hab",
+        "valor": 292624,
+        "vigencia": "2024"
+      }
+    },
+    "03": {
+      "cobertura_edad": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 100.0,
+        "vigencia": "2024"
+      },
+      "pct_65_mas": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 14.8,
+        "vigencia": "2024"
+      },
+      "pct_menor_18": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 17.1,
+        "vigencia": "2024"
+      },
+      "poblacion": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "hab",
+        "valor": 427270,
+        "vigencia": "2024"
+      }
+    },
+    "04": {
+      "cobertura_edad": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 100.0,
+        "vigencia": "2024"
+      },
+      "pct_65_mas": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 23.1,
+        "vigencia": "2024"
+      },
+      "pct_menor_18": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 13.8,
+        "vigencia": "2024"
+      },
+      "poblacion": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "hab",
+        "valor": 343494,
+        "vigencia": "2024"
+      }
+    },
+    "05": {
+      "cobertura_edad": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 100.0,
+        "vigencia": "2024"
+      },
+      "pct_65_mas": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 20.7,
+        "vigencia": "2024"
+      },
+      "pct_menor_18": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 18.5,
+        "vigencia": "2024"
+      },
+      "poblacion": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "hab",
+        "valor": 259271,
+        "vigencia": "2024"
+      }
+    },
+    "06": {
+      "cobertura_edad": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 100.0,
+        "vigencia": "2024"
+      },
+      "pct_65_mas": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 25.7,
+        "vigencia": "2024"
+      },
+      "pct_menor_18": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 15.6,
+        "vigencia": "2024"
+      },
+      "poblacion": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "hab",
+        "valor": 309939,
+        "vigencia": "2024"
+      }
+    },
+    "07": {
+      "cobertura_edad": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 100.0,
+        "vigencia": "2024"
+      },
+      "pct_65_mas": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 21.1,
+        "vigencia": "2024"
+      },
+      "pct_menor_18": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 15.7,
+        "vigencia": "2024"
+      },
+      "poblacion": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "hab",
+        "valor": 356959,
+        "vigencia": "2024"
+      }
+    },
+    "08": {
+      "cobertura_edad": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 100.0,
+        "vigencia": "2024"
+      },
+      "pct_65_mas": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 17.4,
+        "vigencia": "2024"
+      },
+      "pct_menor_18": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 16.3,
+        "vigencia": "2024"
+      },
+      "poblacion": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "hab",
+        "valor": 329470,
+        "vigencia": "2024"
+      }
+    },
+    "09": {
+      "cobertura_edad": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 100.0,
+        "vigencia": "2024"
+      },
+      "pct_65_mas": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 20.2,
+        "vigencia": "2024"
+      },
+      "pct_menor_18": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 16.5,
+        "vigencia": "2024"
+      },
+      "poblacion": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "hab",
+        "valor": 297163,
+        "vigencia": "2024"
+      }
+    },
+    "10": {
+      "cobertura_edad": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 100.0,
+        "vigencia": "2024"
+      },
+      "pct_65_mas": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 21.8,
+        "vigencia": "2024"
+      },
+      "pct_menor_18": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 18.5,
+        "vigencia": "2024"
+      },
+      "poblacion": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "hab",
+        "valor": 294091,
+        "vigencia": "2024"
+      }
+    },
+    "11": {
+      "cobertura_edad": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 100.0,
+        "vigencia": "2024"
+      },
+      "pct_65_mas": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 18.7,
+        "vigencia": "2024"
+      },
+      "pct_menor_18": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 17.5,
+        "vigencia": "2024"
+      },
+      "poblacion": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "hab",
+        "valor": 315544,
+        "vigencia": "2024"
+      }
+    },
+    "12": {
+      "cobertura_edad": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 100.0,
+        "vigencia": "2024"
+      },
+      "pct_65_mas": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 22.8,
+        "vigencia": "2024"
+      },
+      "pct_menor_18": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "%",
+        "valor": 17.0,
+        "vigencia": "2024"
+      },
+      "poblacion": {
+        "fuente": "ua-einwohnerdichte-2024",
+        "unidad": "hab",
+        "valor": 274071,
+        "vigencia": "2024"
+      }
+    }
+  },
+  "probado": "2026-10-07",
+  "series": {},
+  "tema": "poblacion"
+}

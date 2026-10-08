@@ -34,3 +34,7 @@ README.md
 
 # typescript
 *.tsbuildinfo
+
+# lago de datos: solo se excluyen las descargas originales (pesadas).
+# lago/*.json y catalogo/ SÍ entran en la imagen (los importa la Aplicación).
+lago/raw

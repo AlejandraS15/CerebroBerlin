@@ -1,0 +1,38 @@
+[
+  {
+    "name": "010 Wedding",
+    "code": "mc010",
+    "codeEu": "DEBE010",
+    "address": "13353 Berlin, Amrumer Str./Limburger Str.",
+    "lat": "52.54291000",
+    "lng": "13.34926000",
+    "active": true,
+    "stationgroups": ["background"],
+    "measuringStart": "1984-11-01T00:00:00+01:00",
+    "measuringEnd": null
+  },
+  {
+    "name": "018 Schöneberg",
+    "code": "mc018",
+    "codeEu": "DEBE018",
+    "address": "10823 Berlin, Belziger Str. 52",
+    "lat": "52.48579000",
+    "lng": "13.34885000",
+    "active": false,
+    "stationgroups": ["background"],
+    "measuringStart": "1986-11-01T00:00:00+01:00",
+    "measuringEnd": "2024-12-31T00:00:00+01:00"
+  },
+  {
+    "name": "032 Grunewald",
+    "code": "mc032",
+    "codeEu": "DEBE032",
+    "address": "14193 Berlin, Grunewald",
+    "lat": "52.47329000",
+    "lng": "13.22522000",
+    "active": true,
+    "stationgroups": ["background"],
+    "measuringStart": "1985-01-01T00:00:00+01:00",
+    "measuringEnd": null
+  }
+]

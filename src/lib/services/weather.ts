@@ -37,7 +37,7 @@ export async function fetchWeather(): Promise<{
 
   const results = await Promise.all(
     DISTRICT_LIST.map(async (d) => {
-      const [lon, lat] = d.centroid;
+      const [lon, lat] = d.point;
       const raw = await safeFetchJson<OpenMeteoForecast>(
         buildWeatherUrl(lat, lon),
       );
@@ -46,7 +46,7 @@ export async function fetchWeather(): Promise<{
       const point: WeatherPoint = {
         id: `wx-${d.id}`,
         location: d.name,
-        position: d.centroid,
+        position: d.point,
         temperature: Math.round((c.temperature_2m ?? 0) * 10) / 10,
         humidity: Math.round(c.relative_humidity_2m ?? 0),
         windSpeed: Math.round((c.wind_speed_10m ?? 0) * 10) / 10,

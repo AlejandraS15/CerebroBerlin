@@ -1,0 +1,354 @@
+{
+  "cifras": {
+    "superficie_bloques_total": {
+      "fuente": "ua-flaechennutzung-2020",
+      "unidad": "km²",
+      "valor": 793.87,
+      "vigencia": "2020"
+    }
+  },
+  "clasificacion": {
+    "10": {
+      "nutzung": "Wohnnutzung",
+      "verde": false
+    },
+    "100": {
+      "nutzung": "Wald",
+      "verde": true
+    },
+    "110": {
+      "nutzung": "Gewässer",
+      "verde": false
+    },
+    "121": {
+      "nutzung": "Grünland",
+      "verde": false
+    },
+    "122": {
+      "nutzung": "Ackerland",
+      "verde": false
+    },
+    "130": {
+      "nutzung": "Park / Grünfläche",
+      "verde": true
+    },
+    "140": {
+      "nutzung": "Stadtplatz / Promenade",
+      "verde": false
+    },
+    "150": {
+      "nutzung": "Friedhof",
+      "verde": true
+    },
+    "160": {
+      "nutzung": "Kleingartenanlage",
+      "verde": true
+    },
+    "171": {
+      "nutzung": "Brachfläche, vegetationsfrei",
+      "verde": false
+    },
+    "172": {
+      "nutzung": "Brachfläche, wiesenartiger Vegetationsbestand",
+      "verde": true
+    },
+    "173": {
+      "nutzung": "Brachfläche, Mischbestand aus Wiesen, Gebüschen und Bäumen",
+      "verde": true
+    },
+    "190": {
+      "nutzung": "Sportnutzung",
+      "verde": false
+    },
+    "200": {
+      "nutzung": "Baumschule / Gartenbau",
+      "verde": false
+    },
+    "21": {
+      "nutzung": "Mischnutzung",
+      "verde": false
+    },
+    "30": {
+      "nutzung": "Kerngebietsnutzung",
+      "verde": false
+    },
+    "40": {
+      "nutzung": "Gewerbe- und Industrienutzung, großflächiger Einzelhandel",
+      "verde": false
+    },
+    "50": {
+      "nutzung": "Gemeinbedarfs- und Sondernutzung",
+      "verde": false
+    },
+    "60": {
+      "nutzung": "Ver- und Entsorgung",
+      "verde": false
+    },
+    "70": {
+      "nutzung": "Wochenendhaus- und kleingartenähnliche Nutzung",
+      "verde": false
+    },
+    "80": {
+      "nutzung": "Verkehrsfläche (ohne Straßen)",
+      "verde": false
+    },
+    "90": {
+      "nutzung": "Baustelle",
+      "verde": false
+    }
+  },
+  "fuentes": [
+    {
+      "estado": "integrado",
+      "id": "ua-flaechennutzung-2020",
+      "licencia": "Datenlizenz Deutschland – Zero – Version 2.0",
+      "nombre": "Flächennutzung 2020 (Umweltatlas)",
+      "url": "https://gdi.berlin.de/services/wfs/ua_flaechennutzung_2020"
+    }
+  ],
+  "por_distrito": {
+    "01": {
+      "pct_verde": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "%",
+        "valor": 22.8,
+        "vigencia": "2020"
+      },
+      "superficie_bloques_km2": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "km²",
+        "valor": 31.7,
+        "vigencia": "2020"
+      },
+      "superficie_verde_km2": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "km²",
+        "valor": 7.22,
+        "vigencia": "2020"
+      }
+    },
+    "02": {
+      "pct_verde": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "%",
+        "valor": 15.6,
+        "vigencia": "2020"
+      },
+      "superficie_bloques_km2": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "km²",
+        "valor": 16.14,
+        "vigencia": "2020"
+      },
+      "superficie_verde_km2": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "km²",
+        "valor": 2.52,
+        "vigencia": "2020"
+      }
+    },
+    "03": {
+      "pct_verde": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "%",
+        "valor": 33.0,
+        "vigencia": "2020"
+      },
+      "superficie_bloques_km2": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "km²",
+        "valor": 92.65,
+        "vigencia": "2020"
+      },
+      "superficie_verde_km2": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "km²",
+        "valor": 30.61,
+        "vigencia": "2020"
+      }
+    },
+    "04": {
+      "pct_verde": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "%",
+        "valor": 46.9,
+        "vigencia": "2020"
+      },
+      "superficie_bloques_km2": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "km²",
+        "valor": 55.41,
+        "vigencia": "2020"
+      },
+      "superficie_verde_km2": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "km²",
+        "valor": 26.0,
+        "vigencia": "2020"
+      }
+    },
+    "05": {
+      "pct_verde": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "%",
+        "valor": 35.8,
+        "vigencia": "2020"
+      },
+      "superficie_bloques_km2": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "km²",
+        "valor": 84.82,
+        "vigencia": "2020"
+      },
+      "superficie_verde_km2": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "km²",
+        "valor": 30.34,
+        "vigencia": "2020"
+      }
+    },
+    "06": {
+      "pct_verde": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "%",
+        "valor": 40.1,
+        "vigencia": "2020"
+      },
+      "superficie_bloques_km2": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "km²",
+        "valor": 92.29,
+        "vigencia": "2020"
+      },
+      "superficie_verde_km2": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "km²",
+        "valor": 37.04,
+        "vigencia": "2020"
+      }
+    },
+    "07": {
+      "pct_verde": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "%",
+        "valor": 24.2,
+        "vigencia": "2020"
+      },
+      "superficie_bloques_km2": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "km²",
+        "valor": 45.24,
+        "vigencia": "2020"
+      },
+      "superficie_verde_km2": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "km²",
+        "valor": 10.97,
+        "vigencia": "2020"
+      }
+    },
+    "08": {
+      "pct_verde": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "%",
+        "valor": 24.7,
+        "vigencia": "2020"
+      },
+      "superficie_bloques_km2": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "km²",
+        "valor": 38.88,
+        "vigencia": "2020"
+      },
+      "superficie_verde_km2": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "km²",
+        "valor": 9.6,
+        "vigencia": "2020"
+      }
+    },
+    "09": {
+      "pct_verde": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "%",
+        "valor": 55.3,
+        "vigencia": "2020"
+      },
+      "superficie_bloques_km2": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "km²",
+        "valor": 156.5,
+        "vigencia": "2020"
+      },
+      "superficie_verde_km2": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "km²",
+        "valor": 86.5,
+        "vigencia": "2020"
+      }
+    },
+    "10": {
+      "pct_verde": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "%",
+        "valor": 26.7,
+        "vigencia": "2020"
+      },
+      "superficie_bloques_km2": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "km²",
+        "valor": 52.85,
+        "vigencia": "2020"
+      },
+      "superficie_verde_km2": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "km²",
+        "valor": 14.12,
+        "vigencia": "2020"
+      }
+    },
+    "11": {
+      "pct_verde": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "%",
+        "valor": 27.0,
+        "vigencia": "2020"
+      },
+      "superficie_bloques_km2": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "km²",
+        "valor": 46.0,
+        "vigencia": "2020"
+      },
+      "superficie_verde_km2": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "km²",
+        "valor": 12.43,
+        "vigencia": "2020"
+      }
+    },
+    "12": {
+      "pct_verde": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "%",
+        "valor": 39.2,
+        "vigencia": "2020"
+      },
+      "superficie_bloques_km2": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "km²",
+        "valor": 81.4,
+        "vigencia": "2020"
+      },
+      "superficie_verde_km2": {
+        "fuente": "ua-flaechennutzung-2020",
+        "unidad": "km²",
+        "valor": 31.9,
+        "vigencia": "2020"
+      }
+    }
+  },
+  "probado": "2026-10-07",
+  "series": {},
+  "tema": "verde"
+}

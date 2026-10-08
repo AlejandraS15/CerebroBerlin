@@ -16,18 +16,14 @@ import { CONFIG } from "@/lib/config";
 
 export const TERRAIN_EXAGGERATION = 1.3;
 
-/**
- * Altitud media aproximada de Berlín (m s. n. m.). deck.gl apunta la cámara a
- * la superficie del terreno, así que los datos a z=0 quedarían "hundidos"; los
- * elevamos a esta cota (ya exagerada) para que se apoyen sobre el relieve.
- */
-const BERLIN_MEAN_ELEVATION_M = 40;
-export const DATA_ELEVATION_M = BERLIN_MEAN_ELEVATION_M * TERRAIN_EXAGGERATION;
-
 /** Zoom mínimo al que el esquema OpenMapTiles entrega la capa de edificios. */
 export const BUILDINGS_MIN_ZOOM = 13;
 
-const TERRAIN_SOURCE_ID = "terrain-dem";
+/**
+ * Id de la fuente raster-dem del terreno. Se exporta para que el muestreador
+ * de cotas filtre los eventos `sourcedata` de esta fuente.
+ */
+export const TERRAIN_SOURCE_ID = "terrain-dem";
 // MapLibre recomienda una fuente DEM separada para hillshade y para terreno.
 const HILLSHADE_SOURCE_ID = "hillshade-dem";
 const BUILDING_SOURCE_LAYER = "building";

@@ -1,6 +1,6 @@
 import { CONFIG, BERLIN_BBOX } from "@/lib/config";
 import { safeFetchJson } from "@/lib/http";
-import type { Departure, TransitStation } from "@/lib/types";
+import type { Departure, SourceBlock, TransitStation } from "@/lib/types";
 import { MOCK_TRANSIT } from "@/data/mock";
 
 // Respuesta parcial del endpoint /stops de vbb.transport.rest (HAFAS).
@@ -57,11 +57,10 @@ async function fetchDepartures(stopId: string): Promise<Departure[]> {
  * Obtiene estaciones de transporte cercanas al centro de Berlín desde la API
  * pública de VBB (transport.rest). Ante fallo o modo mock, devuelve datos mock.
  */
-export async function fetchTransit(): Promise<{
-  data: TransitStation[];
-  source: "live" | "mock";
-}> {
-  if (CONFIG.useMockData) return { data: MOCK_TRANSIT, source: "mock" };
+export async function fetchTransit(): Promise<SourceBlock<TransitStation[]>> {
+  if (CONFIG.useMockData) {
+    return { data: MOCK_TRANSIT, origin: "mock", fetchedAt: null };
+  }
 
   const cx = (BERLIN_BBOX.west + BERLIN_BBOX.east) / 2;
   const cy = (BERLIN_BBOX.south + BERLIN_BBOX.north) / 2;
@@ -69,7 +68,7 @@ export async function fetchTransit(): Promise<{
 
   const raw = await safeFetchJson<VbbStop[]>(url);
   if (!raw || !Array.isArray(raw) || raw.length === 0) {
-    return { data: MOCK_TRANSIT, source: "mock" };
+    return { data: MOCK_TRANSIT, origin: "mock", fetchedAt: null };
   }
 
   const data: TransitStation[] = raw
@@ -82,7 +81,9 @@ export async function fetchTransit(): Promise<{
       position: [s.location!.longitude!, s.location!.latitude!] as [number, number],
     }));
 
-  if (data.length === 0) return { data: MOCK_TRANSIT, source: "mock" };
+  if (data.length === 0) {
+    return { data: MOCK_TRANSIT, origin: "mock", fetchedAt: null };
+  }
 
   // Enriquecemos las 6 primeras estaciones con salidas en tiempo real.
   // Limitamos la cantidad para no saturar la API (rate limit 100/min).
@@ -94,5 +95,5 @@ export async function fetchTransit(): Promise<{
   );
   const merged = [...withDepartures, ...data.slice(6)];
 
-  return { data: merged, source: "live" };
+  return { data: merged, origin: "live", fetchedAt: new Date().toISOString() };
 }

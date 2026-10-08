@@ -3,6 +3,7 @@
 import { useCityStore } from "@/store/useCityStore";
 import { useTimelinePlayer } from "@/hooks/useTimelinePlayer";
 import { formatHour } from "@/lib/format";
+import { BERLIN_TZ_LABEL } from "@/lib/time";
 
 /**
  * Control de línea de tiempo (24h): slider + play/pause. Anima la actividad
@@ -30,7 +31,9 @@ export function TimelineControl() {
           <span className="uppercase tracking-wider text-slate-400">
             Línea de tiempo · 24h
           </span>
-          <span className="font-mono text-accent">{formatHour(selectedHour)}</span>
+          <span className="font-mono text-accent">
+            {formatHour(selectedHour)} · {BERLIN_TZ_LABEL}
+          </span>
         </div>
         <input
           type="range"

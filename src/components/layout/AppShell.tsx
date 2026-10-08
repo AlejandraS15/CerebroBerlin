@@ -5,6 +5,8 @@ import dynamic from "next/dynamic";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 import { TimelineControl } from "@/components/panels/TimelineControl";
+import { EaqiPanel } from "@/components/eaqi/EaqiPanel";
+import { ProvenancePanel } from "@/components/provenance/ProvenancePanel";
 
 // El mapa se carga solo en cliente (WebGL / MapLibre / Deck.gl).
 const MapContainer = dynamic(
@@ -39,6 +41,10 @@ export function AppShell() {
           </div>
         </main>
       </div>
+
+      {/* Única instancia del Panel_de_Procedencia y del Panel_EAQI (10.5). */}
+      <ProvenancePanel />
+      <EaqiPanel />
     </div>
   );
 }

@@ -3,6 +3,13 @@ import type { LayerCategory } from "./types";
 /**
  * Catálogo de capas del gemelo digital. El LayerController las renderiza
  * y el store controla su visibilidad.
+ *
+ * `example: true` marca las capas de Datos_de_Ejemplo (hotspots e
+ * infraestructura). Es una constante por tipo de capa: la etiqueta
+ * "datos de ejemplo (sin fuente)" se deriva de `LAYER_CATALOG[id].example`,
+ * nunca del dato. Esas capas se fuerzan a invisibles al iniciar el store
+ * (19.4) aunque `defaultVisible` dijera otra cosa; solo las activa un evento
+ * explícito del usuario desde el LayerController.
  */
 export const LAYER_CATALOG: LayerCategory[] = [
   {
@@ -16,10 +23,26 @@ export const LAYER_CATALOG: LayerCategory[] = [
   {
     id: "air",
     label: "Calidad del Aire",
-    description: "PM2.5, NO2, O3 y AQI europeo por sensor (heatmap).",
+    description: "EAQI modelado (CAMS/Open-Meteo) en el punto de cada distrito.",
     icon: "🌫️",
     color: "#a78bfa",
     defaultVisible: true,
+  },
+  {
+    id: "airStations",
+    label: "Estaciones de Aire",
+    description: "Mediciones del Berliner Luftgütemessnetz por estación.",
+    icon: "📡",
+    color: "#c084fc",
+    defaultVisible: false,
+  },
+  {
+    id: "traffic",
+    label: "Tráfico",
+    description: "Detectores con media horaria de vehículos (perfil jun-2025).",
+    icon: "🚗",
+    color: "#f97316",
+    defaultVisible: false,
   },
   {
     id: "weather",
@@ -40,18 +63,20 @@ export const LAYER_CATALOG: LayerCategory[] = [
   {
     id: "infrastructure",
     label: "Infraestructura",
-    description: "Hospitales, escuelas, cultura y servicios.",
+    description: "Hospitales, escuelas, cultura y servicios. Datos de ejemplo (sin fuente).",
     icon: "🏛️",
     color: "#34d399",
     defaultVisible: false,
+    example: true,
   },
   {
     id: "hotspots",
     label: "Puntos Críticos",
-    description: "Incidencias, obras y congestión en tiempo real.",
+    description: "Incidencias, obras y congestión. Datos de ejemplo (sin fuente).",
     icon: "⚠️",
     color: "#fb7185",
-    defaultVisible: true,
+    defaultVisible: false,
+    example: true,
   },
 ];
 

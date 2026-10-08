@@ -1,7 +1,8 @@
 import { CONFIG } from "@/lib/config";
 import { safeFetchJson } from "@/lib/http";
-import type { DistrictFeatureCollection } from "@/lib/types";
+import type { DistrictFeatureCollection, SourceBlock } from "@/lib/types";
 import { BERLIN_DISTRICTS } from "@/data/districts";
+import { lakeProbado } from "@/data/lake";
 
 // Respuesta parcial de la API CKAN de datenregister.berlin.de.
 interface CkanPackageSearch {
@@ -27,16 +28,16 @@ export async function searchOpenDatasets(query: string): Promise<
 }
 
 /**
- * Límites de distritos. En este proyecto usamos geometrías simplificadas
- * empaquetadas; en producción se cargarían los límites oficiales publicados
- * en daten.berlin.de (RBS/ALKIS). Se marca la fuente en consecuencia.
+ * Límites y métricas de distrito desde el lago versionado (Origen_de_Dato
+ * `snapshot`). Los JSON los producen los Scripts_de_Ingesta contra las fuentes
+ * oficiales (ALKIS, Umweltatlas) y los valida el Verificador; aquí solo se
+ * leen. Es síncrono y funciona sin red.
  */
-export async function fetchDistricts(): Promise<{
-  data: DistrictFeatureCollection;
-  source: "live" | "mock";
-}> {
-  // Nota: los límites oficiales suelen servirse como WFS/GeoJSON externos.
-  // Mantenemos la geometría empaquetada como fuente estable y offline-friendly.
-  void CONFIG.berlinOpenDataBase;
-  return { data: BERLIN_DISTRICTS, source: "mock" };
+export function fetchDistricts(): SourceBlock<DistrictFeatureCollection> {
+  return {
+    data: BERLIN_DISTRICTS,
+    origin: "snapshot",
+    // El territorio fija la Fecha_Probado de los límites del distrito.
+    fetchedAt: lakeProbado.territorio,
+  };
 }

@@ -1,12 +1,30 @@
+/**
+ * Datos simulados (Origen_de_Dato `mock`) usados como respaldo cuando una
+ * fuente en vivo no responde, y datos de ejemplo (hotspots, infraestructura)
+ * sin fuente oficial.
+ *
+ * Reglas de esta migración:
+ * - Todo mock se posiciona en el Punto_de_Distrito del lago (`d.point`), no en
+ *   centroides inventados; `District` ya no expone `centroid`, `aqi` ni
+ *   `greenSpacePct`.
+ * - `MOCK_AIR` y `MOCK_AIR_STATIONS` calculan su EAQI con el Módulo_EAQI y
+ *   marcan cada elemento con `origin: "mock"`.
+ * - No existe ninguna serie 24 h fabricada (movilidad, bicis, energía): el
+ *   gráfico se construye con `buildTimeSeries(perfil, hourly)` a partir del
+ *   lago y de Open-Meteo. Solo queda `MOCK_HOURLY` como respaldo del horario.
+ */
+
 import type {
   AirQualityPoint,
+  AirStation,
   BikeStation,
   Hotspot,
+  HourlyPoint,
   InfrastructurePoint,
-  TimeSeriesPoint,
   TransitStation,
   WeatherPoint,
 } from "@/lib/types";
+import { eaqi } from "@/lib/eaqi";
 import { DISTRICT_LIST } from "./districts";
 
 // ─────────────────────────────────────────────────────────────
@@ -31,6 +49,7 @@ export const MOCK_TRANSIT: TransitStation[] = [
 
 // ─────────────────────────────────────────────────────────────
 // Estaciones de micromovilidad (bicis compartidas)
+// Posicionadas alrededor del Punto_de_Distrito del lago.
 // ─────────────────────────────────────────────────────────────
 export const MOCK_BIKES: BikeStation[] = DISTRICT_LIST.flatMap((d, di) =>
   Array.from({ length: 3 }).map((_, i) => {
@@ -39,8 +58,8 @@ export const MOCK_BIKES: BikeStation[] = DISTRICT_LIST.flatMap((d, di) =>
       id: `bike-${d.id}-${i}`,
       name: `Station ${d.name} #${i + 1}`,
       position: [
-        d.centroid[0] + (Math.sin(seed) * 0.02),
-        d.centroid[1] + (Math.cos(seed) * 0.015),
+        d.point[0] + Math.sin(seed) * 0.02,
+        d.point[1] + Math.cos(seed) * 0.015,
       ] as [number, number],
       bikesAvailable: 2 + ((seed * 3) % 18),
       docksAvailable: 1 + ((seed * 5) % 12),
@@ -49,21 +68,60 @@ export const MOCK_BIKES: BikeStation[] = DISTRICT_LIST.flatMap((d, di) =>
 );
 
 // ─────────────────────────────────────────────────────────────
-// Sensores de calidad del aire
+// Calidad del aire modelada (respaldo mock de Open-Meteo)
+// Un punto por distrito, posicionado en el Punto_de_Distrito del lago.
+// El EAQI se calcula con el Módulo_EAQI a partir de concentraciones
+// deterministas; no se deriva de ningún AQI escrito a mano.
 // ─────────────────────────────────────────────────────────────
 export const MOCK_AIR: AirQualityPoint[] = DISTRICT_LIST.map((d, i) => {
-  const pm25 = Math.round(6 + (d.aqi / 3) + (i % 4) * 2);
-  const no2 = Math.round(10 + (d.aqi / 2) + (i % 3) * 4);
-  const o3 = Math.round(30 + (i % 5) * 8 + (d.greenSpacePct / 4));
+  const pm25 = 8 + (i % 5) * 3;
+  const pm10 = 14 + (i % 6) * 4;
+  const no2 = 12 + (i % 4) * 6;
+  const o3 = 44 + (i % 5) * 10;
   return {
     id: `air-${d.id}`,
-    location: `Sensor ${d.name}`,
-    position: d.centroid,
+    districtCode: d.id,
+    location: `Modelo ${d.name}`,
+    position: d.point,
     pm25,
+    pm10,
     no2,
     o3,
-    aqi: d.aqi,
-    updatedAt: new Date().toISOString(),
+    aqi: eaqi({ pm25, pm10, no2, o3 }),
+    updatedAt: null,
+    origin: "mock",
+  };
+});
+
+// ─────────────────────────────────────────────────────────────
+// Estaciones de medición Luftgüte (respaldo mock)
+// Unas pocas estaciones representativas, origen "mock".
+// ─────────────────────────────────────────────────────────────
+const MOCK_STATION_SEEDS: { code: string; name: string; group: string; position: [number, number] }[] = [
+  { code: "mc010", name: "010 Wedding", group: "background", position: [13.34926, 52.54291] },
+  { code: "mc042", name: "042 Neukölln", group: "traffic", position: [13.4305, 52.4892] },
+  { code: "mc117", name: "117 Schildhornstraße", group: "traffic", position: [13.3155, 52.4634] },
+  { code: "mc124", name: "124 Mariendorfer Damm", group: "traffic", position: [13.3878, 52.4381] },
+  { code: "mc174", name: "174 Frankfurter Allee", group: "traffic", position: [13.4756, 52.5146] },
+];
+
+export const MOCK_AIR_STATIONS: AirStation[] = MOCK_STATION_SEEDS.map((s, i) => {
+  const pm25 = 10 + (i % 4) * 3;
+  const pm10 = 18 + (i % 5) * 5;
+  const no2 = 20 + (i % 4) * 8;
+  const o3 = 40 + (i % 3) * 12;
+  return {
+    code: s.code,
+    name: s.name,
+    stationGroup: s.group,
+    position: s.position,
+    pm25,
+    pm10,
+    no2,
+    o3,
+    measuredAt: null,
+    aqi: eaqi({ pm25, pm10, no2, o3 }),
+    origin: "mock",
   };
 });
 
@@ -76,7 +134,7 @@ export const MOCK_WEATHER: WeatherPoint[] = DISTRICT_LIST.map((d, i) => {
   return {
     id: `wx-${d.id}`,
     location: d.name,
-    position: d.centroid,
+    position: d.point,
     temperature: Math.round((9 + (seed % 8) - (i % 3)) * 10) / 10,
     humidity: 55 + ((seed * 3) % 35),
     windSpeed: Math.round((6 + (seed % 14)) * 10) / 10,
@@ -86,7 +144,22 @@ export const MOCK_WEATHER: WeatherPoint[] = DISTRICT_LIST.map((d, i) => {
 });
 
 // ─────────────────────────────────────────────────────────────
-// Puntos críticos / incidencias
+// Horario de 24 h (respaldo mock de Open-Meteo: EAQI y temperatura)
+// Sin series de movilidad/bicis/energía fabricadas.
+// ─────────────────────────────────────────────────────────────
+export const MOCK_HOURLY: HourlyPoint[] = Array.from({ length: 24 }).map((_, hour) => {
+  // Dos repuntes diurnos de EAQI (mañana y tarde) sobre un fondo bajo.
+  const rush =
+    Math.exp(-((hour - 8) ** 2) / 6) + Math.exp(-((hour - 18) ** 2) / 6);
+  const aqi = Math.round(28 + rush * 24);
+  // Curva diaria de temperatura: mínima ~5h, máxima ~15h.
+  const temperature =
+    Math.round((11 + Math.sin(((hour - 9) / 24) * Math.PI * 2) * 6) * 10) / 10;
+  return { hour, aqi, temperature };
+});
+
+// ─────────────────────────────────────────────────────────────
+// Puntos críticos / incidencias (datos de ejemplo, sin fuente)
 // ─────────────────────────────────────────────────────────────
 const HOTSPOT_TYPES: Hotspot["type"][] = ["accidente", "obra", "congestion", "alerta"];
 export const MOCK_HOTSPOTS: Hotspot[] = DISTRICT_LIST.slice(0, 9).map((d, i) => ({
@@ -99,13 +172,13 @@ export const MOCK_HOTSPOTS: Hotspot[] = DISTRICT_LIST.slice(0, 9).map((d, i) => 
     "Alerta de calidad del aire",
   ][i % 4],
   district: d.name,
-  position: [d.centroid[0] + 0.01 * ((i % 3) - 1), d.centroid[1] + 0.008 * ((i % 2) - 0.5)],
+  position: [d.point[0] + 0.01 * ((i % 3) - 1), d.point[1] + 0.008 * ((i % 2) - 0.5)],
   severity: ((i % 3) + 1) as 1 | 2 | 3,
   reportedAt: new Date(Date.now() - i * 3600_000).toISOString(),
 }));
 
 // ─────────────────────────────────────────────────────────────
-// Infraestructura
+// Infraestructura (datos de ejemplo, sin fuente)
 // ─────────────────────────────────────────────────────────────
 const INFRA_CATS: InfrastructurePoint["category"][] = [
   "hospital",
@@ -120,41 +193,8 @@ export const MOCK_INFRA: InfrastructurePoint[] = DISTRICT_LIST.flatMap((d, di) =
     category: INFRA_CATS[(di + ci) % INFRA_CATS.length],
     name: `${cat[0].toUpperCase()}${cat.slice(1)} ${d.name}`,
     position: [
-      d.centroid[0] + (ci - 1) * 0.012,
-      d.centroid[1] + (ci - 1) * 0.01,
+      d.point[0] + (ci - 1) * 0.012,
+      d.point[1] + (ci - 1) * 0.01,
     ] as [number, number],
   })),
 );
-
-// ─────────────────────────────────────────────────────────────
-// Serie temporal 24h (patrón realista de ciudad)
-// ─────────────────────────────────────────────────────────────
-export function buildTimeSeries(): TimeSeriesPoint[] {
-  return Array.from({ length: 24 }).map((_, hour) => {
-    // Dos picos de movilidad (mañana y tarde).
-    const rush =
-      Math.exp(-((hour - 8) ** 2) / 6) + Math.exp(-((hour - 18) ** 2) / 6);
-    const mobilityIndex = Math.round(25 + rush * 60);
-    const aqi = Math.round(40 + rush * 35 + (hour >= 0 && hour <= 5 ? -8 : 0));
-    const bikeUsage = Math.round(
-      200 + rush * 1400 + (hour >= 11 && hour <= 15 ? 300 : 0),
-    );
-    const energyDemand = Math.round(
-      850 + Math.sin(((hour - 6) / 24) * Math.PI * 2) * 220 + rush * 120,
-    );
-    // Curva diaria de temperatura: mínima ~5h, máxima ~15h.
-    const temperature =
-      Math.round((11 + Math.sin(((hour - 9) / 24) * Math.PI * 2) * 6) * 10) / 10;
-    return {
-      hour,
-      label: `${String(hour).padStart(2, "0")}:00`,
-      mobilityIndex,
-      aqi,
-      bikeUsage,
-      energyDemand,
-      temperature,
-    };
-  });
-}
-
-export const MOCK_TIMESERIES = buildTimeSeries();

@@ -48,6 +48,12 @@ export function LayerController() {
                   <span className="mt-0.5 block text-[11px] leading-tight text-slate-400">
                     {layer.description}
                   </span>
+                  {/* Etiqueta derivada del catálogo, no del dato (19.4). */}
+                  {layer.example && (
+                    <span className="mt-1 inline-flex items-center rounded border border-base-500/60 bg-base-700/60 px-1.5 py-0.5 text-[9px] text-slate-400">
+                      datos de ejemplo (sin fuente)
+                    </span>
+                  )}
                 </span>
               </button>
             </li>
