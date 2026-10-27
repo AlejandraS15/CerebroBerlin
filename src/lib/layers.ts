@@ -15,66 +15,143 @@ export const LAYER_CATALOG: LayerCategory[] = [
   {
     id: "mobility",
     label: "Movilidad",
-    description: "U-Bahn, S-Bahn y micromovilidad (bicis/scooters).",
+    description:
+      "Estaciones de transporte público y micromovilidad: cada bolita es una parada de U-Bahn/S-Bahn o una estación de bicis.",
     icon: "🚇",
+    // Las bolitas de transporte se colorean por modo; el cian es la micromovilidad (bicis).
     color: "#22d3ee",
+    legend: {
+      summary: "El color de la bolita indica el modo de transporte:",
+      entries: [
+        { color: "#2563eb", meaning: "U-Bahn (metro)" },
+        { color: "#16a34a", meaning: "S-Bahn (cercanías)" },
+        { color: "#dc2626", meaning: "Tranvía" },
+        { color: "#a855f7", meaning: "Autobús" },
+        { color: "#22d3ee", meaning: "Estación de bicis" },
+      ],
+    },
     defaultVisible: true,
   },
   {
     id: "air",
     label: "Calidad del Aire",
-    description: "EAQI modelado (CAMS/Open-Meteo) en el punto de cada distrito.",
+    description:
+      "Índice europeo de calidad del aire (EAQI) modelado en el punto de cada distrito. Una bolita por distrito.",
     icon: "🌫️",
-    color: "#a78bfa",
+    // La bolita se pinta con el color de su banda EAQI (verde = limpio → granate = muy malo).
+    color: "#50f0e6",
+    legend: {
+      summary: "El color de la bolita sigue las bandas EAQI (verde = aire limpio, rojo/granate = aire muy contaminado):",
+      entries: [
+        { color: "#50f0e6", meaning: "Buena" },
+        { color: "#50ccaa", meaning: "Razonable" },
+        { color: "#f0e641", meaning: "Moderada" },
+        { color: "#ff5050", meaning: "Mala" },
+        { color: "#960032", meaning: "Muy mala / extrema" },
+      ],
+    },
     defaultVisible: true,
   },
   {
     id: "airStations",
     label: "Estaciones de Aire",
-    description: "Mediciones del Berliner Luftgütemessnetz por estación.",
+    description:
+      "Mediciones reales por estación del Berliner Luftgütemessnetz (PM2.5, PM10, NO₂, O₃). Cada bolita es una estación física.",
     icon: "📡",
-    color: "#c084fc",
+    color: "#50f0e6",
+    legend: {
+      summary: "Igual que la calidad del aire: el color de la bolita es su banda EAQI (verde limpio → granate muy contaminado):",
+      entries: [
+        { color: "#50f0e6", meaning: "Buena" },
+        { color: "#f0e641", meaning: "Moderada" },
+        { color: "#ff5050", meaning: "Mala" },
+        { color: "#960032", meaning: "Muy mala / extrema" },
+      ],
+    },
     defaultVisible: false,
   },
   {
     id: "traffic",
     label: "Tráfico",
-    description: "Detectores con media horaria de vehículos (perfil jun-2025).",
+    description:
+      "Detectores de vehículos con media horaria (perfil típico de junio de 2025). Cambia con la hora del timeline.",
     icon: "🚗",
     color: "#f97316",
+    legend: {
+      summary:
+        "La bolita más grande y más roja = más tráfico; más pequeña y verde = tráfico fluido. El gris significa que a esa hora no hay dato:",
+      entries: [
+        { color: "#4ade80", meaning: "Tráfico fluido (pocos vehículos)" },
+        { color: "#f59e0b", meaning: "Tráfico medio" },
+        { color: "#ef4444", meaning: "Tráfico denso (muchos vehículos)" },
+        { color: "#94a3b8", meaning: "Sin dato a esa hora" },
+      ],
+    },
     defaultVisible: false,
   },
   {
     id: "weather",
     label: "Clima",
-    description: "Temperatura, humedad y viento por distrito (Open-Meteo).",
+    description:
+      "Temperatura, humedad y viento por distrito (Open-Meteo). Una bolita por distrito coloreada por temperatura.",
     icon: "🌡️",
     color: "#38bdf8",
+    legend: {
+      summary: "El color de la bolita indica la temperatura: azul = frío, rojo = calor:",
+      entries: [
+        { color: "#2878e6", meaning: "Frío (≈ −5 °C)" },
+        { color: "#7ce0a0", meaning: "Templado (≈ 15 °C)" },
+        { color: "#ff3c1e", meaning: "Caluroso (≈ 35 °C)" },
+      ],
+    },
     defaultVisible: false,
   },
   {
     id: "demographics",
     label: "Demografía",
-    description: "Población y densidad por distrito (coropletas).",
+    description:
+      "Población y densidad por distrito, pintadas como áreas de color (coropletas) sobre el mapa.",
     icon: "👥",
     color: "#f59e0b",
+    legend: {
+      summary: "El color del distrito indica la densidad de población: cuanto más rojo, más gente por km²:",
+      entries: [
+        { color: "#f59e0b", meaning: "Baja densidad (pocos habitantes/km²)" },
+        { color: "#ea7a2e", meaning: "Densidad media" },
+        { color: "#ef4444", meaning: "Alta densidad (mucha gente/km²)" },
+      ],
+    },
     defaultVisible: true,
   },
   {
     id: "infrastructure",
     label: "Infraestructura",
-    description: "Hospitales, escuelas, cultura y servicios. Datos de ejemplo (sin fuente).",
+    description:
+      "Hospitales, escuelas, cultura y servicios. Cada bolita verde es un equipamiento. Datos de ejemplo (sin fuente).",
     icon: "🏛️",
     color: "#34d399",
+    legend: {
+      summary: "Todas las bolitas comparten color; marcan la ubicación de un equipamiento público:",
+      entries: [{ color: "#34d399", meaning: "Equipamiento (hospital, escuela, cultura…)" }],
+    },
     defaultVisible: false,
     example: true,
   },
   {
     id: "hotspots",
     label: "Puntos Críticos",
-    description: "Incidencias, obras y congestión. Datos de ejemplo (sin fuente).",
+    description:
+      "Incidencias, obras y congestión. La bolita más grande y roja indica mayor severidad. Datos de ejemplo (sin fuente).",
     icon: "⚠️",
     color: "#fb7185",
+    legend: {
+      summary: "Cuanto más grande y roja es la bolita, más grave es la incidencia:",
+      entries: [
+        { color: "#facc15", meaning: "Severidad baja" },
+        { color: "#fb923c", meaning: "Severidad media" },
+        { color: "#f87171", meaning: "Severidad alta" },
+      ],
+    },
     defaultVisible: false,
     example: true,
   },

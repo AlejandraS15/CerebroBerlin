@@ -19,7 +19,9 @@ import type {
   District,
   Hotspot,
   InfrastructurePoint,
+  LayerId,
   MapTarget,
+  MapTargetKind,
   TooltipContent,
   TooltipRow,
   TransitStation,
@@ -35,6 +37,25 @@ const TRAFFIC_VIGENCIA = "perfil típico de junio de 2025";
 /** `example === true` de una capa (constante por tipo, no por dato). */
 function layerIsExample(id: "hotspots" | "infrastructure"): boolean {
   return LAYER_CATALOG.find((l) => l.id === id)?.example === true;
+}
+
+/** Capa del catálogo a la que pertenece cada tipo de objeto del mapa. */
+const TARGET_LAYER: Record<MapTargetKind, LayerId> = {
+  district: "demographics",
+  airStation: "airStations",
+  air: "air",
+  detector: "traffic",
+  transit: "mobility",
+  bike: "mobility",
+  weather: "weather",
+  hotspot: "hotspots",
+  infra: "infrastructure",
+};
+
+/** Nombre + emoji de la capa de un objeto, para encabezar el tooltip. */
+function layerInfoFor(kind: MapTargetKind): { label: string; icon: string } | undefined {
+  const layer = LAYER_CATALOG.find((l) => l.id === TARGET_LAYER[kind]);
+  return layer ? { label: layer.label, icon: layer.icon } : undefined;
 }
 
 /** Distrito por Código_de_Distrito. */
@@ -179,6 +200,17 @@ function infraTooltip(data: CityDataset, id: string): TooltipContent | null {
  * fijada; se recalcula desde `data` y `hour` (no se congela).
  */
 export function tooltipFor(
+  target: MapTarget,
+  data: CityDataset,
+  hour: number,
+): TooltipContent | null {
+  const content = buildTooltip(target, data, hour);
+  if (!content) return null;
+  // Encabeza el tooltip con la capa (nombre + emoji) del objeto apuntado.
+  return { ...content, layer: layerInfoFor(target.kind) };
+}
+
+function buildTooltip(
   target: MapTarget,
   data: CityDataset,
   hour: number,

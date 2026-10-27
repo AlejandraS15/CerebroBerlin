@@ -68,9 +68,21 @@ export function HoverTooltip({
       className="pointer-events-none absolute z-30 max-w-xs rounded-lg border border-base-500/60 bg-base-800/95 px-3 py-2 text-xs shadow-panel backdrop-blur"
       style={{ left: x + 14, top: y + 14 }}
     >
+      <LayerTag layer={content.layer} />
       <div className="mb-1 font-semibold text-accent">{content.title}</div>
       <Rows rows={content.rows} interactive={false} />
       <div className="mt-1 text-[10px] italic text-slate-500">Clic para fijar</div>
+    </div>
+  );
+}
+
+/** Insignia con el emoji y el nombre de la capa del objeto apuntado. */
+function LayerTag({ layer }: { layer?: { label: string; icon: string } }) {
+  if (!layer) return null;
+  return (
+    <div className="mb-1 inline-flex items-center gap-1 rounded-full border border-base-500/50 bg-base-700/60 px-2 py-0.5 text-[10px] font-medium text-slate-300">
+      <span aria-hidden="true">{layer.icon}</span>
+      {layer.label}
     </div>
   );
 }
@@ -126,14 +138,17 @@ export function PinnedTooltipCard({ content }: { content: TooltipContent | null 
       style={{ left, top }}
     >
       <div className="mb-1 flex items-start justify-between gap-2">
-        <h3
-          id="pinned-tooltip-title"
-          ref={titleRef}
-          tabIndex={-1}
-          className="font-semibold text-accent outline-none"
-        >
-          {content.title}
-        </h3>
+        <div>
+          <LayerTag layer={content.layer} />
+          <h3
+            id="pinned-tooltip-title"
+            ref={titleRef}
+            tabIndex={-1}
+            className="font-semibold text-accent outline-none"
+          >
+            {content.title}
+          </h3>
+        </div>
         <button
           type="button"
           onClick={close}
