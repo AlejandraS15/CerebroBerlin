@@ -63,6 +63,14 @@ export type LayerId =
   | "infrastructure"
   | "hotspots";
 
+/** Entrada de la leyenda visual de una capa: un color (bolita del mapa) y qué significa. */
+export interface LayerLegendEntry {
+  /** Color HEX de la muestra, igual que la bolita/relleno en el mapa. */
+  color: string;
+  /** Qué representa ese color (p. ej. "más gente", "aire limpio"). */
+  meaning: string;
+}
+
 export interface LayerCategory {
   id: LayerId;
   label: string;
@@ -71,6 +79,16 @@ export interface LayerCategory {
   icon: string;
   /** Color de acento en HEX para leyendas/badges. */
   color: string;
+  /**
+   * Explicación de la codificación visual al desplegar el selector (qué
+   * significan los colores/tamaños de las bolitas sobre el mapa).
+   */
+  legend?: {
+    /** Texto introductorio (p. ej. "El color indica la densidad:"). */
+    summary: string;
+    /** Muestras de color con su significado (rampa o categorías). */
+    entries?: LayerLegendEntry[];
+  };
   /** Ignorado (forzado a false) si `example === true`. */
   defaultVisible: boolean;
   /** Constante por tipo: true en hotspots e infraestructura (datos de ejemplo sin fuente). */
@@ -379,4 +397,6 @@ export interface TooltipContent {
   target: MapTarget;
   title: string;
   rows: TooltipRow[];
+  /** Capa a la que pertenece el objeto (nombre + emoji), para encabezar el tooltip. */
+  layer?: { label: string; icon: string };
 }
