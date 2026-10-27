@@ -9,7 +9,19 @@ interface EaqiPanelState {
   returnFocusTo: HTMLElement | null;
 }
 
+/**
+ * Vistas principales de la aplicación (pestañas del centro de mando):
+ * - `city`: mapa + selección de capas (vista principal).
+ * - `analytics`: dashboard de KPIs y gráficas.
+ * - `sources`: fuentes y huecos de datos.
+ */
+export type AppView = "city" | "analytics" | "sources";
+
 export interface CityState {
+  /** Pestaña/vista activa del centro de mando. */
+  activeView: AppView;
+  setActiveView: (v: AppView) => void;
+
   /** Visibilidad de cada capa. */
   layerVisibility: Record<LayerId, boolean>;
   toggleLayer: (id: LayerId) => void;
@@ -68,6 +80,9 @@ function initialVisibility(): Record<LayerId, boolean> {
  */
 export function createCityStore(): UseBoundStore<StoreApi<CityState>> {
   return create<CityState>((set) => ({
+    activeView: "city",
+    setActiveView: (v) => set({ activeView: v }),
+
     layerVisibility: initialVisibility(),
     toggleLayer: (id) =>
       set((s) => ({
