@@ -63,11 +63,13 @@ export type LayerId =
   | "infrastructure"
   | "hotspots";
 
-/** Entrada de la leyenda visual de una capa: un color (bolita del mapa) y qué significa. */
+/** Entrada de la leyenda visual de una capa: una muestra (color o icono) y qué significa. */
 export interface LayerLegendEntry {
-  /** Color HEX de la muestra, igual que la bolita/relleno en el mapa. */
-  color: string;
-  /** Qué representa ese color (p. ej. "más gente", "aire limpio"). */
+  /** Color HEX de la muestra, igual que la bolita/relleno/tramo en el mapa. */
+  color?: string;
+  /** Emoji que se dibuja sobre el mapa para esta categoría (p. ej. 🏥). */
+  icon?: string;
+  /** Qué representa esa muestra (p. ej. "más gente", "hospital"). */
   meaning: string;
 }
 

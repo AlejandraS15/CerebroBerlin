@@ -1,4 +1,4 @@
-import { GeoJsonLayer, ScatterplotLayer } from "@deck.gl/layers";
+import { GeoJsonLayer, LineLayer, ScatterplotLayer, TextLayer } from "@deck.gl/layers";
 import type { Color, Layer, PickingInfo } from "@deck.gl/core";
 import type {
   AirQualityPoint,
@@ -86,15 +86,6 @@ const SEVERITY_COLOR: Record<number, Color> = {
   2: [251, 146, 60],
   3: [248, 113, 113],
 };
-
-/**
- * Radio de un detector proporcional a √(qkfz) para que el área crezca con el
- * flujo de vehículos. Radio mínimo (y color gris) cuando la hora no tiene dato.
- */
-function detectorRadius(qkfz: number | null): number {
-  if (qkfz == null || !Number.isFinite(qkfz)) return 40;
-  return 40 + Math.sqrt(Math.max(0, qkfz)) * 22;
-}
 
 /**
  * Construye el array de capas Deck.gl a partir del dataset, la visibilidad, la
@@ -195,29 +186,32 @@ export function buildDeckLayers({
     }),
   );
 
-  // ── Tráfico: detectores con media horaria (radio ∝ √qkfz[hour]) ──
+  // ── Tráfico: segmentos de vía coloreados por intensidad horaria ──
+  // Cada detector es un punto sin geometría de calle, así que se dibuja un
+  // tramo corto centrado en su posición. El color va de verde (poco tráfico) a
+  // rojo (mucho) y el grosor crece con los vehículos/h; gris si no hay dato a
+  // esa hora. Reacciona a la hora vía updateTriggers.
   layers.push(
-    new ScatterplotLayer<TrafficDetector>({
+    new LineLayer<TrafficDetector>({
       id: "traffic",
       data: data.trafficDetectors,
       visible: visibility.traffic,
       pickable: true,
-      radiusUnits: "pixels",
-      radiusMinPixels: 3,
-      radiusMaxPixels: 60,
-      getPosition: (d) => withElevation(d.position, sampler),
-      getRadius: (d) => Math.min(60, detectorRadius(d.qkfz[hour] ?? null) / 6),
-      getFillColor: (d) => {
+      widthUnits: "pixels",
+      widthMinPixels: 2,
+      widthMaxPixels: 14,
+      getSourcePosition: (d) => trafficSegment(d.position, sampler)[0],
+      getTargetPosition: (d) => trafficSegment(d.position, sampler)[1],
+      getColor: (d) => {
         const q = d.qkfz[hour] ?? null;
-        return q == null ? GREY : aqiColorForTraffic(q);
+        return q == null ? GREY : trafficColor(q);
       },
-      getLineColor: [15, 23, 42, 200],
-      lineWidthMinPixels: 1,
-      stroked: true,
+      getWidth: (d) => trafficWidth(d.qkfz[hour] ?? null),
       updateTriggers: {
-        getPosition: elevationVersion,
-        getRadius: hour,
-        getFillColor: hour,
+        getSourcePosition: elevationVersion,
+        getTargetPosition: elevationVersion,
+        getColor: hour,
+        getWidth: hour,
       },
       onHover: (info) => {
         const d = info.object as TrafficDetector | undefined;
@@ -291,18 +285,29 @@ export function buildDeckLayers({
     }),
   );
 
-  // ── Infraestructura (datos de ejemplo): radio por severidad sin hora ──
+  // ── Infraestructura (datos de ejemplo): un emoji por categoría ──
+  // En vez de una bolita, cada equipamiento se dibuja con el emoji de su tipo
+  // (🏥 hospital, 🏫 escuela, 🎭 cultura, ⚡ energía, 💧 agua) mediante un
+  // TextLayer, que genera su propio atlas de glifos sin assets externos.
   layers.push(
-    new ScatterplotLayer<InfrastructurePoint>({
+    new TextLayer<InfrastructurePoint>({
       id: "infrastructure",
       data: data.infrastructure,
       visible: visibility.infrastructure,
       pickable: true,
-      radiusMinPixels: 3,
-      radiusMaxPixels: 10,
       getPosition: (d) => withElevation(d.position, sampler),
-      getRadius: 70,
-      getFillColor: [52, 211, 153, 210],
+      getText: (d) => INFRA_ICON[d.category] ?? "📍",
+      getSize: 22,
+      sizeUnits: "pixels",
+      getColor: [255, 255, 255, 255],
+      getTextAnchor: "middle",
+      getAlignmentBaseline: "center",
+      background: true,
+      getBackgroundColor: [15, 23, 42, 170],
+      backgroundPadding: [3, 3, 3, 3],
+      fontFamily:
+        '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif',
+      characterSet: INFRA_CHARSET,
       updateTriggers: posTrigger,
       onHover: (info) => {
         const d = info.object as InfrastructurePoint | undefined;
@@ -341,13 +346,50 @@ export function buildDeckLayers({
 }
 
 /**
- * Color del detector por intensidad de tráfico (verde → rojo). No es EAQI:
- * se mapea el flujo veh/h a una rampa simple para leer la congestión.
+ * Color del tramo de tráfico por intensidad (verde fluido → amarillo → rojo
+ * congestión). Se normaliza el flujo veh/h a [0,1] sobre ~2000 veh/h.
  */
-function aqiColorForTraffic(qkfz: number): Color {
-  const t = Math.min(1, qkfz / 2000);
+function trafficColor(qkfz: number): Color {
+  const t = Math.min(1, Math.max(0, qkfz) / 2000);
   const r = Math.round(74 + t * 174);
   const g = Math.round(222 - t * 150);
   const b = Math.round(90 - t * 50);
-  return [r, g, b, 210];
+  return [r, g, b, 230];
 }
+
+/** Grosor del tramo en píxeles según el flujo; fino y constante sin dato. */
+function trafficWidth(qkfz: number | null): number {
+  if (qkfz == null || !Number.isFinite(qkfz)) return 2;
+  const t = Math.min(1, Math.max(0, qkfz) / 2000);
+  return 3 + t * 11; // 3 px (poco) → 14 px (mucho)
+}
+
+/**
+ * Tramo corto (origen→destino) centrado en el punto del detector, ya que los
+ * detectores no traen geometría de calle. Longitud fija en grados y orientación
+ * diagonal constante; ambos extremos se elevan con el muestreador de cotas.
+ */
+function trafficSegment(
+  point: [number, number],
+  sampler: ElevationSampler,
+): [number[], number[]] {
+  const dx = 0.0016; // ~110 m en longitud a la latitud de Berlín
+  const dy = 0.0011;
+  const a: [number, number] = [point[0] - dx, point[1] - dy];
+  const b: [number, number] = [point[0] + dx, point[1] + dy];
+  return [withElevation(a, sampler), withElevation(b, sampler)];
+}
+
+/** Emoji por categoría de infraestructura (datos de ejemplo). */
+const INFRA_ICON: Record<InfrastructurePoint["category"], string> = {
+  hospital: "🏥",
+  escuela: "🏫",
+  cultura: "🎭",
+  energia: "⚡",
+  agua: "💧",
+};
+
+/** Conjunto de caracteres del atlas del TextLayer de infraestructura. */
+const INFRA_CHARSET: string[] = Array.from(
+  new Set([...Object.values(INFRA_ICON).join(""), "📍"]),
+);

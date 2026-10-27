@@ -114,13 +114,13 @@ describe("buildDeckLayers", () => {
     expect(getPos2(MOCK_TRANSIT[0])[2]).toBe(0);
   });
 
-  it("los detectores de tráfico reaccionan a la hora vía updateTriggers", () => {
+  it("los tramos de tráfico reaccionan a la hora vía updateTriggers", () => {
     const layers = buildDeckLayers({ ...base, sampler: sampler57, hour: 3 });
     const traffic = layers.find((l) => l.id === "traffic")!;
     const triggers = (traffic.props as unknown as {
-      updateTriggers: { getRadius: number; getFillColor: number };
+      updateTriggers: { getColor: number; getWidth: number };
     }).updateTriggers;
-    expect(triggers.getRadius).toBe(3);
-    expect(triggers.getFillColor).toBe(3);
+    expect(triggers.getColor).toBe(3);
+    expect(triggers.getWidth).toBe(3);
   });
 });
