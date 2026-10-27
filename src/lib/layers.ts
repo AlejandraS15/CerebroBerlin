@@ -79,7 +79,7 @@ export const LAYER_CATALOG: LayerCategory[] = [
     color: "#f97316",
     legend: {
       summary:
-        "Cada detector se dibuja como un tramo de vía: cuanto más grueso y rojo, más vehículos/hora; fino y verde = tráfico fluido. El gris significa que a esa hora no hay dato:",
+        "Cada detector se dibuja como un tramo alineado con la vía: cuanto más grueso y rojo, más vehículos/hora; fino y verde = tráfico fluido. El gris significa que a esa hora no hay dato:",
       entries: [
         { color: "#4ade80", meaning: "Tráfico fluido (pocos vehículos)" },
         { color: "#f59e0b", meaning: "Tráfico medio" },
