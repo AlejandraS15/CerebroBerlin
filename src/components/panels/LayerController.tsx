@@ -118,12 +118,24 @@ function LayerRow({
               {layer.legend.entries && layer.legend.entries.length > 0 && (
                 <ul className="space-y-1">
                   {layer.legend.entries.map((e) => (
-                    <li key={`${e.color}-${e.meaning}`} className="flex items-center gap-2">
-                      <span
-                        aria-hidden="true"
-                        className="h-3 w-3 shrink-0 rounded-full ring-1 ring-white/20"
-                        style={{ backgroundColor: e.color }}
-                      />
+                    <li
+                      key={`${e.icon ?? e.color}-${e.meaning}`}
+                      className="flex items-center gap-2"
+                    >
+                      {e.icon ? (
+                        <span
+                          aria-hidden="true"
+                          className="flex h-4 w-4 shrink-0 items-center justify-center text-[13px] leading-none"
+                        >
+                          {e.icon}
+                        </span>
+                      ) : (
+                        <span
+                          aria-hidden="true"
+                          className="h-3 w-3 shrink-0 rounded-full ring-1 ring-white/20"
+                          style={{ backgroundColor: e.color }}
+                        />
+                      )}
                       <span className="text-slate-300">{e.meaning}</span>
                     </li>
                   ))}
