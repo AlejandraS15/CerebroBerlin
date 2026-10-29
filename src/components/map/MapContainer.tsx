@@ -48,6 +48,7 @@ export function MapContainer() {
   const selectedHour = useCityStore((s) => s.selectedHour);
   const is3D = useCityStore((s) => s.is3D);
   const setSelectedDistrict = useCityStore((s) => s.setSelectedDistrict);
+  const selectedDistrictId = useCityStore((s) => s.selectedDistrict?.id ?? null);
   const pinned = useCityStore((s) => s.pinned);
   const pin = useCityStore((s) => s.pin);
 
@@ -115,8 +116,17 @@ export function MapContainer() {
       elevationVersion,
       onDistrictClick,
       onHover: setHoverTarget,
+      selectedDistrictId,
     });
-  }, [data, visibility, selectedHour, sampler, elevationVersion, onDistrictClick]);
+  }, [
+    data,
+    visibility,
+    selectedHour,
+    sampler,
+    elevationVersion,
+    onDistrictClick,
+    selectedDistrictId,
+  ]);
 
   const onMouseMove = useCallback((e: React.MouseEvent) => {
     const rect = e.currentTarget.getBoundingClientRect();

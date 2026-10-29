@@ -35,7 +35,14 @@ interface BuildArgs {
   onDistrictClick: (d: District) => void;
   /** Emite el objetivo bajo el puntero (`null` al salir). */
   onHover: (target: MapTarget | null) => void;
+  /** Código del distrito en análisis; se resalta con un color distinto. */
+  selectedDistrictId?: string | null;
 }
+
+/** Relleno del distrito seleccionado (acento cian intenso, semitransparente). */
+const SELECTED_DISTRICT_FILL: Color = [34, 211, 238, 150];
+/** Borde del distrito seleccionado (cian brillante y más grueso). */
+const SELECTED_DISTRICT_LINE: Color = [103, 232, 249, 255];
 
 const MODE_COLOR: Record<TransitStation["mode"], Color> = {
   u: [37, 99, 235], // U-Bahn azul
@@ -104,6 +111,7 @@ export function buildDeckLayers({
   elevationVersion,
   onDistrictClick,
   onHover,
+  selectedDistrictId = null,
 }: BuildArgs): Layer[] {
   const layers: Layer[] = [];
   const posTrigger = { getPosition: elevationVersion };
@@ -113,8 +121,16 @@ export function buildDeckLayers({
     ...f,
     geometry: elevateGeometry(f.geometry as PolygonalGeometry, sampler) as DistrictFeature["geometry"],
   }));
+  // El distrito en análisis se resalta con un relleno/borde distinto; el resto
+  // usa la rampa de densidad habitual.
   const districtFill: (f: DistrictFeature) => Color = (f) =>
-    densityColor(f.properties.density);
+    f.properties.id === selectedDistrictId
+      ? SELECTED_DISTRICT_FILL
+      : densityColor(f.properties.density);
+  const districtLine: (f: DistrictFeature) => Color = (f) =>
+    f.properties.id === selectedDistrictId
+      ? SELECTED_DISTRICT_LINE
+      : [34, 211, 238, 180];
 
   layers.push(
     new GeoJsonLayer({
@@ -126,9 +142,17 @@ export function buildDeckLayers({
       filled: true,
       extruded: false,
       getFillColor: districtFill as unknown as Color,
-      getLineColor: [34, 211, 238, 180],
+      getLineColor: districtLine as unknown as Color,
       lineWidthMinPixels: 1,
-      updateTriggers: { getPosition: elevationVersion },
+      lineWidthUnits: "pixels",
+      getLineWidth: (f: DistrictFeature) =>
+        f.properties.id === selectedDistrictId ? 3 : 1,
+      updateTriggers: {
+        getPosition: elevationVersion,
+        getFillColor: selectedDistrictId,
+        getLineColor: selectedDistrictId,
+        getLineWidth: selectedDistrictId,
+      },
       onClick: (info: PickingInfo) => {
         const p = (info.object as DistrictFeature | undefined)?.properties;
         if (p) onDistrictClick(p);

@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect } from "react";
 import dynamic from "next/dynamic";
 import { LayerController } from "@/components/panels/LayerController";
 import { TimelineControl } from "@/components/panels/TimelineControl";
 import { SourceBadges } from "@/components/panels/SourceBadges";
+import { useCityStore } from "@/store/useCityStore";
 
 // El mapa se carga solo en cliente (WebGL / MapLibre / Deck.gl).
 const MapContainer = dynamic(
@@ -24,6 +26,14 @@ const MapContainer = dynamic(
  * mapa es la protagonista; la analítica y las fuentes viven en otras pestañas.
  */
 export function CityView({ sidebarOpen }: { sidebarOpen: boolean }) {
+  const setSelectedDistrict = useCityStore((s) => s.setSelectedDistrict);
+
+  // Al cerrar el panel lateral se deselecciona la provincia, de modo que el
+  // distrito recupera su color normal y el popup de detalle se cierra.
+  useEffect(() => {
+    if (!sidebarOpen) setSelectedDistrict(null);
+  }, [sidebarOpen, setSelectedDistrict]);
+
   return (
     <div className="relative flex h-full flex-1 overflow-hidden">
       <aside
