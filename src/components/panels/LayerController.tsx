@@ -10,25 +10,14 @@ import type { LayerCategory } from "@/lib/types";
  * de las bolitas del mapa), descripción y una sección desplegable que explica
  * qué significan los colores/tamaños que se verán sobre el mapa.
  */
-/**
- * Capas que no se controlan desde aquí porque sus interruptores viven en el
- * Popup_de_Distrito (por provincia): clima y calidad del aire.
- */
-const DISTRICT_SCOPED_LAYERS: ReadonlySet<LayerCategory["id"]> = new Set([
-  "weather",
-  "air",
-]);
-
 export function LayerController() {
   const visibility = useCityStore((s) => s.layerVisibility);
   const toggleLayer = useCityStore((s) => s.toggleLayer);
 
-  const layers = LAYER_CATALOG.filter((l) => !DISTRICT_SCOPED_LAYERS.has(l.id));
-
   return (
     <section>
       <ul className="space-y-2">
-        {layers.map((layer) => (
+        {LAYER_CATALOG.map((layer) => (
           <LayerRow
             key={layer.id}
             layer={layer}

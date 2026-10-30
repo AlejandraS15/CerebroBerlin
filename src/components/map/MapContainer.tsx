@@ -10,13 +10,17 @@ import { useCityStore } from "@/store/useCityStore";
 import { useCityData } from "@/hooks/useCityData";
 import { useMapStyle } from "@/hooks/useMapStyle";
 import { useTerrainElevation, type TerrainPoint } from "@/hooks/useTerrainElevation";
+import { useTrafficRoads } from "@/hooks/useTrafficRoads";
 import { buildDeckLayers } from "./buildDeckLayers";
 import { HoverTooltip, PinnedTooltipCard } from "./MapTooltip";
 import { DistrictPopup } from "./DistrictPopup";
 import { tooltipFor } from "@/lib/tooltips";
-import type { District, MapTarget } from "@/lib/types";
+import type { District, MapTarget, TrafficDetector } from "@/lib/types";
 
 const CAMERA_2D = { pitch: 0, bearing: 0, duration: 900 };
+
+/** Referencia estable para cuando aún no hay datos (evita resuscribir el hook). */
+const EMPTY_DETECTORS: TrafficDetector[] = [];
 
 /**
  * Cámara para entrar en 3D. Si estamos lejos (sin edificios visibles), vuela
@@ -101,6 +105,14 @@ export function MapContainer() {
 
   const { sampler, elevationVersion } = useTerrainElevation(mapRef, terrainPoints);
 
+  // Red vial real del mapa base, asociada a los detectores, para el tráfico
+  // estilo Waze. Solo se consulta cuando la capa de tráfico está activa.
+  const { segments: trafficRoads, version: trafficRoadsVersion } = useTrafficRoads(
+    mapRef,
+    data?.trafficDetectors ?? EMPTY_DETECTORS,
+    visibility.traffic,
+  );
+
   const onDistrictClick = useCallback(
     (d: District) => setSelectedDistrict(d),
     [setSelectedDistrict],
@@ -117,6 +129,8 @@ export function MapContainer() {
       onDistrictClick,
       onHover: setHoverTarget,
       selectedDistrictId,
+      trafficRoads,
+      trafficRoadsVersion,
     });
   }, [
     data,
@@ -126,6 +140,8 @@ export function MapContainer() {
     elevationVersion,
     onDistrictClick,
     selectedDistrictId,
+    trafficRoads,
+    trafficRoadsVersion,
   ]);
 
   const onMouseMove = useCallback((e: React.MouseEvent) => {
