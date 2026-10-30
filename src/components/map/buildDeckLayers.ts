@@ -23,6 +23,7 @@ import {
   type PolygonalGeometry,
 } from "@/lib/terrain";
 import {
+  buildTrafficRoadSegments,
   trafficColor,
   trafficWidth,
   type TrafficRoadSegment,
@@ -42,14 +43,6 @@ interface BuildArgs {
   onHover: (target: MapTarget | null) => void;
   /** Código del distrito en análisis; se resalta con un color distinto. */
   selectedDistrictId?: string | null;
-  /**
-   * Tramos de la red vial real (del mapa base) asociados a su detector más
-   * cercano, para colorear las calles estilo Waze. Vacío si la capa está
-   * desactivada o aún no se han leído las teselas.
-   */
-  trafficRoads?: TrafficRoadSegment[];
-  /** Versión de `trafficRoads`: dispara el recálculo del PathLayer. */
-  trafficRoadsVersion?: number;
 }
 
 /** Relleno del distrito seleccionado (acento cian intenso, semitransparente). */
@@ -125,16 +118,13 @@ export function buildDeckLayers({
   onDistrictClick,
   onHover,
   selectedDistrictId = null,
-  trafficRoads = [],
-  trafficRoadsVersion = 0,
 }: BuildArgs): Layer[] {
   const layers: Layer[] = [];
   const posTrigger = { getPosition: elevationVersion };
 
-  // Índice detector→qkfz para colorear cada tramo de calle por su detector.
-  const detectorById = new Map<string, TrafficDetector>(
-    data.trafficDetectors.map((d) => [d.id, d]),
-  );
+  // Tramos de vía (polilíneas por corredor) a partir de los detectores.
+  const trafficRoads = buildTrafficRoadSegments(data.trafficDetectors);
+  const trafficDetectors = data.trafficDetectors;
 
   // ── Demografía: coropletas de distritos con vértices elevados ──
   const elevatedFeatures: DistrictFeature[] = data.districts.features.map((f) => ({
@@ -230,11 +220,11 @@ export function buildDeckLayers({
     }),
   );
 
-  // ── Tráfico estilo Waze: colorea las calles reales sobre su trazado ──
-  // La geometría viene del mapa base (red vial `transportation`); cada tramo de
-  // calle se asocia al detector más cercano y se colorea por sus vehículos/h en
-  // la hora seleccionada: verde (fluido) → amarillo/naranja (medio) → rojo
-  // (denso); gris si no hay dato a esa hora. El trazado sigue las curvas reales.
+  // ── Tráfico: tramos de vía coloreados por vehículos/hora (ligado al timeline) ──
+  // Cada tramo sigue el eje del corredor del detector (polilínea hacia sus
+  // vecinos) y se colorea por sus vehículos/h en la hora seleccionada: verde
+  // (fluido) → amarillo/naranja (medio) → rojo (denso); gris si no hay dato a
+  // esa hora. El color/grosor se recalculan al mover la línea de tiempo.
   layers.push(
     new PathLayer<TrafficRoadSegment>({
       id: "traffic",
@@ -242,27 +232,20 @@ export function buildDeckLayers({
       visible: visibility.traffic,
       pickable: true,
       widthUnits: "pixels",
-      widthMinPixels: 2,
-      widthMaxPixels: 14,
+      widthMinPixels: 3,
+      widthMaxPixels: 16,
       capRounded: true,
       jointRounded: true,
       getPath: (s) => s.path,
-      getColor: (s) => {
-        const det = s.detectorId ? detectorById.get(s.detectorId) : undefined;
-        return trafficColor(det ? (det.qkfz[hour] ?? null) : null);
-      },
-      getWidth: (s) => {
-        const det = s.detectorId ? detectorById.get(s.detectorId) : undefined;
-        return trafficWidth(det ? (det.qkfz[hour] ?? null) : null);
-      },
+      getColor: (s) => trafficColor(trafficDetectors[s.detectorIndex]?.qkfz[hour] ?? null),
+      getWidth: (s) => trafficWidth(trafficDetectors[s.detectorIndex]?.qkfz[hour] ?? null),
       updateTriggers: {
-        getColor: [hour, trafficRoadsVersion],
-        getWidth: [hour, trafficRoadsVersion],
-        getPath: trafficRoadsVersion,
+        getColor: hour,
+        getWidth: hour,
       },
       onHover: (info) => {
         const s = info.object as TrafficRoadSegment | undefined;
-        onHover(s && s.detectorId ? { kind: "detector", id: s.detectorId } : null);
+        onHover(s ? { kind: "detector", id: s.id } : null);
       },
     }),
   );
