@@ -6,6 +6,15 @@ import { useCityStore } from "@/store/useCityStore";
 import type { LayerCategory } from "@/lib/types";
 
 /**
+ * Capas que no se controlan desde aquí: clima y calidad del aire se muestran
+ * como dato en el panel de la provincia (sidebar derecho), no como selector.
+ */
+const HIDDEN_FROM_CONTROLLER: ReadonlySet<LayerCategory["id"]> = new Set([
+  "weather",
+  "air",
+]);
+
+/**
  * Control de capas: un toggle por capa con icono, color (que coincide con el
  * de las bolitas del mapa), descripción y una sección desplegable que explica
  * qué significan los colores/tamaños que se verán sobre el mapa.
@@ -14,10 +23,12 @@ export function LayerController() {
   const visibility = useCityStore((s) => s.layerVisibility);
   const toggleLayer = useCityStore((s) => s.toggleLayer);
 
+  const layers = LAYER_CATALOG.filter((l) => !HIDDEN_FROM_CONTROLLER.has(l.id));
+
   return (
     <section>
       <ul className="space-y-2">
-        {LAYER_CATALOG.map((layer) => (
+        {layers.map((layer) => (
           <LayerRow
             key={layer.id}
             layer={layer}
