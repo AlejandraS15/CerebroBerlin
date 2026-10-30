@@ -114,17 +114,15 @@ describe("buildDeckLayers", () => {
     expect(getPos2(MOCK_TRANSIT[0])[2]).toBe(0);
   });
 
-  it("las calles de tráfico reaccionan a la hora vía updateTriggers", () => {
+  it("los tramos de tráfico reaccionan a la hora vía updateTriggers", () => {
     const hour = 3;
     const layers = buildDeckLayers({ ...base, sampler: sampler57, hour });
     const traffic = layers.find((l) => l.id === "traffic")!;
     const triggers = (traffic.props as unknown as {
-      updateTriggers: { getColor: unknown[]; getWidth: unknown[] };
+      updateTriggers: { getColor: number; getWidth: number };
     }).updateTriggers;
-    // El color/grosor de cada vía se recalcula al cambiar la hora (y la versión
-    // de la red vial consultada).
-    expect(Array.isArray(triggers.getColor)).toBe(true);
-    expect(triggers.getColor).toContain(hour);
-    expect(triggers.getWidth).toContain(hour);
+    // El color/grosor de cada tramo se recalcula al cambiar la hora del timeline.
+    expect(triggers.getColor).toBe(hour);
+    expect(triggers.getWidth).toBe(hour);
   });
 });

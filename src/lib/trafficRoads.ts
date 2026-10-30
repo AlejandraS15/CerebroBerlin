@@ -1,9 +1,12 @@
 /**
- * Tráfico estilo Waze: colorea las calles reales según los vehículos/hora del
- * detector más cercano. La geometría de las vías se toma del mapa base
- * vectorial (source-layer `transportation` de OpenMapTiles), no se inventan
- * trazados. Cada segmento de calle se asocia al detector más próximo y se
- * colorea con la cantidad de vehículos/hora de ese detector.
+ * Tráfico tipo Waze: tramos de vía coloreados por vehículos/hora del detector.
+ *
+ * Los detectores no traen geometría de calle, así que cada detector se dibuja
+ * como un tramo que sigue el eje de su corredor: se conecta con sus detectores
+ * vecinos más próximos (que se alinean sobre la misma vía), formando una
+ * polilínea que aproxima el trazado de la calle en lugar de una raya aislada.
+ * El color/grosor salen de los vehículos/hora de ese detector en la hora
+ * seleccionada.
  *
  * Módulo de lógica pura (sin React ni deck.gl) para poder probarlo aislado.
  */
@@ -58,46 +61,85 @@ export function trafficWidth(qkfz: number | null): number {
   return 4 + t * 8; // 4 px (poco) → 12 px (mucho)
 }
 
-/** Segmento de calle (trazado real) listo para pintar, con su detector. */
+/** Tramo de vía (polilínea) de un detector, listo para pintar con PathLayer. */
 export interface TrafficRoadSegment {
-  /** Id estable del segmento (para React keys / picking). */
+  /** Id del detector (para picking / React keys). */
   id: string;
-  /** Vértices [lng, lat] del trazado real de la vía (puede tener curvas). */
+  /** Vértices [lng, lat] del tramo que sigue el eje del corredor. */
   path: [number, number][];
-  /** Detector asociado (el más cercano), o `null` si ninguno está en rango. */
-  detectorId: string | null;
+  /** Índice del detector en `data.trafficDetectors` (acceso a qkfz por hora). */
+  detectorIndex: number;
 }
 
-/** Punto medio aproximado de un trazado (para medir cercanía al detector). */
-function midpoint(path: [number, number][]): [number, number] {
-  if (path.length === 0) return [0, 0];
-  const mid = path[Math.floor(path.length / 2)];
-  return mid;
+/** Latitud de referencia (centro de Berlín) para corregir longitudes en grados. */
+const BERLIN_COS_LAT = Math.cos((52.52 * Math.PI) / 180);
+/** Media longitud (grados) del tramo cuando un detector no tiene vecinos cerca. */
+const FALLBACK_HALF = 0.0009; // ~90 m total
+/** Distancia máx. (grados, corregida) para considerar a un vecino del corredor. */
+const NEIGHBOR_MAX_DEG = 0.004; // ~300 m
+
+/** Distancia al cuadrado entre dos puntos, corrigiendo la longitud por latitud. */
+function dist2(a: [number, number], b: [number, number]): number {
+  const dx = (a[0] - b[0]) * BERLIN_COS_LAT;
+  const dy = a[1] - b[1];
+  return dx * dx + dy * dy;
+}
+
+/** Punto medio entre dos coordenadas. */
+function mid(a: [number, number], b: [number, number]): [number, number] {
+  return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
 }
 
 /**
- * Asocia un trazado de vía al detector más cercano dentro de `maxDeg` (grados,
- * corregidos por latitud). Devuelve el id del detector o `null` si ninguno está
- * suficientemente cerca (map-matching razonable, sin forzar correspondencias).
+ * Construye, por cada detector, una polilínea que sigue el eje de su corredor:
+ * va del punto medio hacia su vecino más cercano, pasa por el detector y sigue
+ * hacia su segundo vecino más cercano. Así el tramo "apunta" a lo largo de la
+ * calle (no es una raya horizontal) y queda centrado en el detector. Si no hay
+ * vecinos en rango, usa un tramo corto horizontal de respaldo.
+ *
+ * O(n²) sobre los detectores; se ejecuta una vez (no por frame).
  */
-export function nearestDetectorId(
-  path: [number, number][],
+export function buildTrafficRoadSegments(
   detectors: TrafficDetector[],
-  cosLat: number,
-  maxDeg: number,
-): string | null {
-  if (path.length === 0 || detectors.length === 0) return null;
-  const [mlng, mlat] = midpoint(path);
-  let best: string | null = null;
-  let bestD2 = maxDeg * maxDeg;
-  for (const d of detectors) {
-    const dx = (d.position[0] - mlng) * cosLat;
-    const dy = d.position[1] - mlat;
-    const d2 = dx * dx + dy * dy;
-    if (d2 <= bestD2) {
-      bestD2 = d2;
-      best = d.id;
+): TrafficRoadSegment[] {
+  const n = detectors.length;
+  return detectors.map((d, i) => {
+    const p = d.position;
+    // Dos vecinos más cercanos (en rango).
+    let n1 = -1;
+    let n2 = -1;
+    let d1 = NEIGHBOR_MAX_DEG * NEIGHBOR_MAX_DEG;
+    let d2 = NEIGHBOR_MAX_DEG * NEIGHBOR_MAX_DEG;
+    for (let j = 0; j < n; j++) {
+      if (j === i) continue;
+      const dd = dist2(p, detectors[j].position);
+      if (dd < d1) {
+        d2 = d1;
+        n2 = n1;
+        d1 = dd;
+        n1 = j;
+      } else if (dd < d2) {
+        d2 = dd;
+        n2 = j;
+      }
     }
-  }
-  return best;
+
+    let path: [number, number][];
+    if (n1 >= 0 && n2 >= 0) {
+      path = [mid(p, detectors[n1].position), p, mid(p, detectors[n2].position)];
+    } else if (n1 >= 0) {
+      const m = mid(p, detectors[n1].position);
+      // Extiende simétricamente al otro lado para que el tramo quede centrado.
+      const opp: [number, number] = [2 * p[0] - m[0], 2 * p[1] - m[1]];
+      path = [m, p, opp];
+    } else {
+      // Sin vecinos: tramo corto horizontal centrado en el detector.
+      path = [
+        [p[0] - FALLBACK_HALF / BERLIN_COS_LAT, p[1]],
+        [p[0] + FALLBACK_HALF / BERLIN_COS_LAT, p[1]],
+      ];
+    }
+
+    return { id: d.id, path, detectorIndex: i };
+  });
 }
