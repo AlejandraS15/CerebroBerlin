@@ -35,11 +35,14 @@ export function DistrictPopup() {
   const aqi = air?.aqi ?? null;
   const airOrigin: Origin = air?.origin ?? "live";
 
-  // Clima del distrito: punto meteorológico asociado por su posición.
-  const weather: WeatherPoint | undefined = data?.weather.find(
-    (w) =>
-      w.position[0] === district.point[0] && w.position[1] === district.point[1],
-  );
+  // Clima del distrito: punto meteorológico asociado por Código_de_Distrito
+  // (id `wx-<código>`), con respaldo por posición exacta del punto del distrito.
+  const weather: WeatherPoint | undefined =
+    data?.weather.find((w) => w.id === `wx-${district.id}`) ??
+    data?.weather.find(
+      (w) =>
+        w.position[0] === district.point[0] && w.position[1] === district.point[1],
+    );
   const weatherOrigin: Origin = data?.source.weather ?? "live";
 
   // Momento de consulta del aire (para la procedencia del AQI).
