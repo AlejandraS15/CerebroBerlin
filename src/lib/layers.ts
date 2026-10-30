@@ -50,7 +50,9 @@ export const LAYER_CATALOG: LayerCategory[] = [
         { color: "#960032", meaning: "Muy mala / extrema" },
       ],
     },
-    defaultVisible: true,
+    // Ya no se controla desde la izquierda: se muestra como dato en el panel de
+    // la provincia, así que no se dibuja por defecto sobre el mapa.
+    defaultVisible: false,
   },
   {
     id: "airStations",
