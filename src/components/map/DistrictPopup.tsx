@@ -4,7 +4,8 @@ import { useCityStore } from "@/store/useCityStore";
 import { useCityData } from "@/hooks/useCityData";
 import { NO_DATA } from "@/lib/format";
 import { METRICS } from "@/lib/metrics";
-import type { AirQualityPoint, Origin, ProvenanceRef } from "@/lib/types";
+import { weatherCodeLabel } from "@/lib/services/weather";
+import type { AirQualityPoint, Origin, ProvenanceRef, WeatherPoint } from "@/lib/types";
 import { OriginBadge } from "@/components/provenance/OriginBadge";
 import { ProvenanceButton } from "@/components/provenance/ProvenanceButton";
 import { EaqiInfoButton } from "@/components/eaqi/EaqiInfoButton";
@@ -23,8 +24,6 @@ import { EaqiBandLabel } from "@/components/eaqi/EaqiBandLabel";
 export function DistrictPopup() {
   const district = useCityStore((s) => s.selectedDistrict);
   const setSelectedDistrict = useCityStore((s) => s.setSelectedDistrict);
-  const layerVisibility = useCityStore((s) => s.layerVisibility);
-  const setLayer = useCityStore((s) => s.setLayer);
   const { data } = useCityData();
 
   if (!district) return null;
@@ -35,6 +34,13 @@ export function DistrictPopup() {
   );
   const aqi = air?.aqi ?? null;
   const airOrigin: Origin = air?.origin ?? "live";
+
+  // Clima del distrito: punto meteorológico asociado por su posición.
+  const weather: WeatherPoint | undefined = data?.weather.find(
+    (w) =>
+      w.position[0] === district.point[0] && w.position[1] === district.point[1],
+  );
+  const weatherOrigin: Origin = data?.source.weather ?? "live";
 
   // Momento de consulta del aire (para la procedencia del AQI).
   const airFetchedAt = data?.fetchedAt.air ?? undefined;
@@ -65,26 +71,6 @@ export function DistrictPopup() {
         >
           ✕
         </button>
-      </div>
-
-      {/* Selectores de capa específicos de la provincia: clima y calidad del
-          aire. Controlan la visibilidad global de esas capas sobre el mapa. */}
-      <div className="mb-3 space-y-1.5">
-        <p className="text-[10px] uppercase tracking-wide text-slate-400">
-          Ver sobre el mapa
-        </p>
-        <LayerToggle
-          icon="🌡️"
-          label="Clima"
-          active={layerVisibility.weather}
-          onToggle={() => setLayer("weather", !layerVisibility.weather)}
-        />
-        <LayerToggle
-          icon="🌫️"
-          label="Calidad del aire"
-          active={layerVisibility.air}
-          onToggle={() => setLayer("air", !layerVisibility.air)}
-        />
       </div>
 
       <dl className="space-y-2 text-sm">
@@ -170,6 +156,33 @@ export function DistrictPopup() {
             {aqi != null && <EaqiBandLabel value={aqi} />}
           </dd>
         </div>
+
+        {/* Clima: temperatura y condición (Open-Meteo) como dato, no selector. */}
+        <div className="rounded-lg bg-base-700/60 px-3 py-2">
+          <dt className="flex items-center gap-1 text-[10px] uppercase tracking-wide text-slate-400">
+            Clima · Open-Meteo
+            <span className="ml-auto flex items-center gap-1">
+              <OriginBadge origin={weatherOrigin} compact />
+            </span>
+          </dt>
+          <dd className="mt-0.5 flex items-baseline justify-between gap-2">
+            <span className="font-semibold text-slate-100">
+              {weather != null
+                ? `${weather.temperature.toLocaleString("es")} °C`
+                : NO_DATA}
+            </span>
+            {weather != null && (
+              <span className="text-[11px] text-slate-400">
+                {weatherCodeLabel(weather.weatherCode)}
+              </span>
+            )}
+          </dd>
+          {weather != null && (
+            <p className="mt-0.5 text-[10px] leading-tight text-slate-400">
+              Humedad {weather.humidity} % · Viento {weather.windSpeed} km/h
+            </p>
+          )}
+        </div>
       </dl>
     </div>
   );
@@ -209,44 +222,4 @@ function Metric({
   );
 }
 
-/** Interruptor de capa (clima / calidad del aire) dentro del popup. */
-function LayerToggle({
-  icon,
-  label,
-  active,
-  onToggle,
-}: {
-  icon: string;
-  label: string;
-  active: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-pressed={active}
-      className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm transition ${
-        active
-          ? "border-accent/40 bg-base-600/50 shadow-glow"
-          : "border-base-500/40 bg-base-700/40 hover:border-base-500"
-      }`}
-    >
-      <span aria-hidden="true" className="text-base leading-none">
-        {icon}
-      </span>
-      <span className="flex-1 font-medium text-slate-100">{label}</span>
-      <span
-        className={`h-3.5 w-6 rounded-full p-0.5 transition ${
-          active ? "bg-accent/70" : "bg-base-500"
-        }`}
-      >
-        <span
-          className={`block h-2.5 w-2.5 rounded-full bg-white transition-transform ${
-            active ? "translate-x-2.5" : ""
-          }`}
-        />
-      </span>
-    </button>
-  );
-}
+

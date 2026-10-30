@@ -74,17 +74,17 @@ export const LAYER_CATALOG: LayerCategory[] = [
     id: "traffic",
     label: "Tráfico",
     description:
-      "Detectores de vehículos con media horaria (perfil típico de junio de 2025). Cambia con la hora del timeline.",
+      "Las calles se colorean según los vehículos/hora del detector más cercano (perfil típico de junio de 2025), siguiendo su trazado real como en Waze.",
     icon: "🚗",
     color: "#f97316",
     legend: {
       summary:
-        "Cada detector se dibuja como un tramo alineado con la vía: cuanto más grueso y rojo, más vehículos/hora; fino y verde = tráfico fluido. El gris significa que a esa hora no hay dato:",
+        "Las vías se pintan sobre su trazado real según el tráfico de la hora seleccionada: verde fluido → amarillo/naranja medio → rojo denso. El gris indica que no hay dato a esa hora.",
       entries: [
         { color: "#4ade80", meaning: "Tráfico fluido (pocos vehículos)" },
         { color: "#f59e0b", meaning: "Tráfico medio" },
         { color: "#ef4444", meaning: "Tráfico denso (muchos vehículos)" },
-        { color: "#94a3b8", meaning: "Sin dato a esa hora" },
+        { color: "#94a3b8", meaning: "Sin datos a esa hora" },
       ],
     },
     defaultVisible: false,

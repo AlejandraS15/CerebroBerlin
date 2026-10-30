@@ -1,4 +1,4 @@
-import { GeoJsonLayer, IconLayer, LineLayer, ScatterplotLayer } from "@deck.gl/layers";
+import { GeoJsonLayer, IconLayer, PathLayer, ScatterplotLayer } from "@deck.gl/layers";
 import type { Color, Layer, PickingInfo } from "@deck.gl/core";
 import type {
   AirQualityPoint,
@@ -22,6 +22,11 @@ import {
   type ElevationSampler,
   type PolygonalGeometry,
 } from "@/lib/terrain";
+import {
+  trafficColor,
+  trafficWidth,
+  type TrafficRoadSegment,
+} from "@/lib/trafficRoads";
 
 interface BuildArgs {
   data: CityDataset;
@@ -37,6 +42,14 @@ interface BuildArgs {
   onHover: (target: MapTarget | null) => void;
   /** Código del distrito en análisis; se resalta con un color distinto. */
   selectedDistrictId?: string | null;
+  /**
+   * Tramos de la red vial real (del mapa base) asociados a su detector más
+   * cercano, para colorear las calles estilo Waze. Vacío si la capa está
+   * desactivada o aún no se han leído las teselas.
+   */
+  trafficRoads?: TrafficRoadSegment[];
+  /** Versión de `trafficRoads`: dispara el recálculo del PathLayer. */
+  trafficRoadsVersion?: number;
 }
 
 /** Relleno del distrito seleccionado (acento cian intenso, semitransparente). */
@@ -112,9 +125,16 @@ export function buildDeckLayers({
   onDistrictClick,
   onHover,
   selectedDistrictId = null,
+  trafficRoads = [],
+  trafficRoadsVersion = 0,
 }: BuildArgs): Layer[] {
   const layers: Layer[] = [];
   const posTrigger = { getPosition: elevationVersion };
+
+  // Índice detector→qkfz para colorear cada tramo de calle por su detector.
+  const detectorById = new Map<string, TrafficDetector>(
+    data.trafficDetectors.map((d) => [d.id, d]),
+  );
 
   // ── Demografía: coropletas de distritos con vértices elevados ──
   const elevatedFeatures: DistrictFeature[] = data.districts.features.map((f) => ({
@@ -210,42 +230,39 @@ export function buildDeckLayers({
     }),
   );
 
-  // ── Tráfico: segmentos de vía coloreados por intensidad horaria ──
-  // ── Tráfico: tramos de vía alineados al eje de la calle ──
-  // Los detectores no traen geometría de calle; el tramo de cada uno se orienta
-  // según la dirección hacia su detector vecino más cercano (los detectores se
-  // alinean sobre las vías, así que esa dirección aproxima el eje de la calle).
-  // Color verde (fluido) → rojo (congestión) y grosor por vehículos/h; gris sin
-  // dato a esa hora. Reacciona a la hora vía updateTriggers.
-  const trafficSegments: TrafficSegment[] = buildTrafficSegments(
-    data.trafficDetectors,
-    sampler,
-  );
+  // ── Tráfico estilo Waze: colorea las calles reales sobre su trazado ──
+  // La geometría viene del mapa base (red vial `transportation`); cada tramo de
+  // calle se asocia al detector más cercano y se colorea por sus vehículos/h en
+  // la hora seleccionada: verde (fluido) → amarillo/naranja (medio) → rojo
+  // (denso); gris si no hay dato a esa hora. El trazado sigue las curvas reales.
   layers.push(
-    new LineLayer<TrafficSegment>({
+    new PathLayer<TrafficRoadSegment>({
       id: "traffic",
-      data: trafficSegments,
+      data: trafficRoads,
       visible: visibility.traffic,
       pickable: true,
       widthUnits: "pixels",
       widthMinPixels: 2,
-      widthMaxPixels: 16,
-      getSourcePosition: (s) => s.source,
-      getTargetPosition: (s) => s.target,
+      widthMaxPixels: 14,
+      capRounded: true,
+      jointRounded: true,
+      getPath: (s) => s.path,
       getColor: (s) => {
-        const q = s.detector.qkfz[hour] ?? null;
-        return q == null ? GREY : trafficColor(q);
+        const det = s.detectorId ? detectorById.get(s.detectorId) : undefined;
+        return trafficColor(det ? (det.qkfz[hour] ?? null) : null);
       },
-      getWidth: (s) => trafficWidth(s.detector.qkfz[hour] ?? null),
+      getWidth: (s) => {
+        const det = s.detectorId ? detectorById.get(s.detectorId) : undefined;
+        return trafficWidth(det ? (det.qkfz[hour] ?? null) : null);
+      },
       updateTriggers: {
-        getSourcePosition: elevationVersion,
-        getTargetPosition: elevationVersion,
-        getColor: hour,
-        getWidth: hour,
+        getColor: [hour, trafficRoadsVersion],
+        getWidth: [hour, trafficRoadsVersion],
+        getPath: trafficRoadsVersion,
       },
       onHover: (info) => {
-        const s = info.object as TrafficSegment | undefined;
-        onHover(s ? { kind: "detector", id: s.detector.id } : null);
+        const s = info.object as TrafficRoadSegment | undefined;
+        onHover(s && s.detectorId ? { kind: "detector", id: s.detectorId } : null);
       },
     }),
   );
@@ -372,99 +389,6 @@ export function buildDeckLayers({
   );
 
   return layers;
-}
-
-/**
- * Color del tramo de tráfico por intensidad (verde fluido → amarillo → rojo
- * congestión). Se normaliza el flujo veh/h a [0,1] sobre ~2000 veh/h; a partir
- * de ~1500 veh/h el tramo es claramente rojo.
- */
-function trafficColor(qkfz: number): Color {
-  const t = Math.min(1, Math.max(0, qkfz) / 2000);
-  // Rampa en dos tramos: verde → amarillo (0..0.5) y amarillo → rojo (0.5..1).
-  let r: number;
-  let g: number;
-  if (t < 0.5) {
-    const u = t / 0.5;
-    r = Math.round(74 + u * 181); // 74 → 255
-    g = Math.round(222 - u * 33); // 222 → 189
-  } else {
-    const u = (t - 0.5) / 0.5;
-    r = 255;
-    g = Math.round(189 - u * 189); // 189 → 0
-  }
-  return [r, g, 40, 235];
-}
-
-/** Grosor del tramo en píxeles según el flujo; fino y constante sin dato. */
-function trafficWidth(qkfz: number | null): number {
-  if (qkfz == null || !Number.isFinite(qkfz)) return 2;
-  const t = Math.min(1, Math.max(0, qkfz) / 2000);
-  return 3 + t * 13; // 3 px (poco) → 16 px (mucho)
-}
-
-/** Tramo de vía orientado al eje de la calle, listo para el LineLayer. */
-interface TrafficSegment {
-  detector: TrafficDetector;
-  source: number[];
-  target: number[];
-}
-
-/**
- * Construye un tramo por detector orientado según la dirección hacia su vecino
- * más cercano, de modo que la línea sigue el eje de la vía en lugar de una
- * diagonal fija. Longitud ~110 m; respaldo a orientación horizontal si no hay
- * vecino. Ambos extremos se elevan con el muestreador de cotas.
- */
-function buildTrafficSegments(
-  detectors: TrafficDetector[],
-  sampler: ElevationSampler,
-): TrafficSegment[] {
-  const HALF = 0.0012; // media longitud del tramo en grados (~110 m total)
-  // Factor de corrección por latitud para medir distancias en grados.
-  const cosLat = Math.cos((52.52 * Math.PI) / 180);
-
-  return detectors.map((d, i) => {
-    const [lng, lat] = d.position;
-    let bearing = nearestBearing(detectors, i, cosLat);
-    if (bearing == null) bearing = 0; // sin vecino: tramo horizontal (E-O)
-
-    // Vector unitario del eje de la calle, corrigiendo la longitud por latitud.
-    const dLng = (Math.cos(bearing) * HALF) / (cosLat || 1);
-    const dLat = Math.sin(bearing) * HALF;
-    const a: [number, number] = [lng - dLng, lat - dLat];
-    const b: [number, number] = [lng + dLng, lat + dLat];
-    return { detector: d, source: withElevation(a, sampler), target: withElevation(b, sampler) };
-  });
-}
-
-/**
- * Ángulo (radianes) de la dirección desde el detector `i` hacia el detector más
- * cercano; `null` si no hay otros detectores. Las distancias se miden en grados
- * corrigiendo la longitud por el coseno de la latitud.
- */
-function nearestBearing(
-  detectors: TrafficDetector[],
-  i: number,
-  cosLat: number,
-): number | null {
-  const [lng, lat] = detectors[i].position;
-  let best = -1;
-  let bestD2 = Infinity;
-  for (let j = 0; j < detectors.length; j++) {
-    if (j === i) continue;
-    const [ol, oa] = detectors[j].position;
-    const dx = (ol - lng) * cosLat;
-    const dy = oa - lat;
-    const d2 = dx * dx + dy * dy;
-    if (d2 < bestD2) {
-      bestD2 = d2;
-      best = j;
-    }
-  }
-  if (best < 0) return null;
-  const [ol, oa] = detectors[best].position;
-  return Math.atan2(oa - lat, (ol - lng) * cosLat);
 }
 
 /**

@@ -3,9 +3,9 @@
 import { useEffect } from "react";
 import dynamic from "next/dynamic";
 import { LayerController } from "@/components/panels/LayerController";
-import { TimelineControl } from "@/components/panels/TimelineControl";
 import { SourceBadges } from "@/components/panels/SourceBadges";
 import { useCityStore } from "@/store/useCityStore";
+import { useTimelinePlayer } from "@/hooks/useTimelinePlayer";
 
 // El mapa se carga solo en cliente (WebGL / MapLibre / Deck.gl).
 const MapContainer = dynamic(
@@ -28,6 +28,12 @@ const MapContainer = dynamic(
 export function CityView({ sidebarOpen }: { sidebarOpen: boolean }) {
   const setSelectedDistrict = useCityStore((s) => s.setSelectedDistrict);
 
+  // Se retiró el control visible de línea de tiempo del mapa, pero se mantiene
+  // la lógica horaria: la hora se sincroniza con la de Berlín al montar, de modo
+  // que las capas que dependen de la hora (p. ej. el tráfico) reflejan la hora
+  // real. El dashboard de Analítica conserva el estado de la hora.
+  useTimelinePlayer();
+
   // Al cerrar el panel lateral se deselecciona la provincia, de modo que el
   // distrito recupera su color normal y el popup de detalle se cierra.
   useEffect(() => {
@@ -49,11 +55,6 @@ export function CityView({ sidebarOpen }: { sidebarOpen: boolean }) {
 
       <main className="relative flex-1">
         <MapContainer />
-
-        {/* Control de línea de tiempo flotante en la parte inferior. */}
-        <div className="pointer-events-none absolute bottom-4 left-1/2 z-20 w-[min(560px,calc(100%-2rem))] -translate-x-1/2 md:left-[calc(50%+160px)]">
-          <TimelineControl />
-        </div>
       </main>
     </div>
   );
