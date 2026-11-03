@@ -15,7 +15,7 @@ Interfaz moderna, responsiva y en **modo oscuro por defecto**.
 
 - **Mapa central interactivo** (MapLibre GL + Deck.gl): terreno 3D con relieve, edificios extruidos con su altura real (OSM), cielo con niebla de horizonte, *heatmaps* y marcadores.
 - **Sidebar / Panel lateral**:
-  - **Layer Control**: Movilidad, Calidad del Aire, Demografía, Infraestructura, Puntos Críticos.
+  - **Layer Control**: Movilidad, Estaciones de Aire, Clima, Demografía, Infraestructura y Puntos Críticos.
   - **Dashboard analítico**: KPIs en tiempo real y gráficos dinámicos (Recharts).
 - **Línea de tiempo (24h)**: slider + reproducción automática que anima la actividad urbana y sincroniza los charts.
 - **Popups / Tooltips**: al pasar el cursor por estaciones/sensores y al hacer clic en distritos (Mitte, Kreuzberg, Pankow…).

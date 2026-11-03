@@ -6,11 +6,10 @@ import { useCityStore } from "@/store/useCityStore";
 import type { LayerCategory } from "@/lib/types";
 
 /**
- * Capas que no se controlan desde aquí: clima y calidad del aire se muestran
- * como dato en el panel de la provincia (sidebar derecho), no como selector.
+ * La calidad del aire agregada se muestra como dato en el panel del distrito,
+ * no como selector. Las estaciones de aire y el clima sí tienen selector propio.
  */
 const HIDDEN_FROM_CONTROLLER: ReadonlySet<LayerCategory["id"]> = new Set([
-  "weather",
   "air",
 ]);
 
