@@ -21,6 +21,10 @@ export const CONFIG = {
   weatherApiBase:
     process.env.NEXT_PUBLIC_WEATHER_API_BASE ||
     "https://api.open-meteo.com/v1",
+  // DWD Open Data: observaciones vivas CSV por estación.
+  dwdWeatherBase:
+    process.env.NEXT_PUBLIC_DWD_WEATHER_BASE ||
+    "https://opendata.dwd.de/weather/weather_reports/poi",
   // Berliner Luftgütemessnetz (BLUME): estaciones de medición reales, sin token.
   luftgueteApiBase:
     process.env.NEXT_PUBLIC_LUFTGUETE_API_BASE || "https://luftdaten.berlin.de",

@@ -6,6 +6,7 @@
     "url": "https://www.berlin.de/sen/web/service/maerkte-feste/wochen-troedelmaerkte/index.php",
     "cobertura": "Mercados semanales, de productores, mercadillos y mini mercados con coordenadas",
     "vigencia": "tiempo real",
+    "probado": "2026-11-03",
     "estado": "caído",
     "licencia": "Creative Commons Attribution (CC-BY)",
     "personas": "no",
@@ -134,6 +135,21 @@
     "nota": "Uso gratuito no comercial. Consultada en tiempo de ejecución; si fallan los 12 distritos se usa el respaldo simulado etiquetado."
   },
   {
+    "id": "dwd-open-data-weather",
+    "nombre": "DWD Open Data (observaciones meteorológicas)",
+    "entidad": "Deutscher Wetterdienst (DWD)",
+    "url": "https://opendata.dwd.de/weather/",
+    "cobertura": "Observaciones meteorológicas vivas de estaciones Berlin-Dahlem, Berlin-Tempelhof y Berlin Brandenburg",
+    "vigencia": "tiempo real",
+    "probado": "2026-11-03",
+    "estado": "integrado",
+    "licencia": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+    "personas": "no",
+    "proteccion": "ninguna: mediciones meteorológicas de estaciones",
+    "uso": "en vivo: capa de clima por distrito, asignada a la estación DWD más cercana",
+    "nota": "La aplicación consulta los CSV BEOB de las estaciones DWD y conserva Open-Meteo como fallback técnico si las observaciones no están disponibles."
+  },
+  {
     "id": "open-meteo-meteo",
     "nombre": "Open-Meteo Weather Forecast API",
     "entidad": "Open-Meteo",
@@ -141,12 +157,12 @@
     "cobertura": "Pronóstico meteorológico por coordenada, Berlín",
     "vigencia": "tiempo real",
     "probado": "2026-10-07",
-    "estado": "integrado",
+    "estado": "candidato",
     "licencia": "API data is offered under the Attribution 4.0 International license (CC BY 4.0)",
     "personas": "no",
     "proteccion": "ninguna: valores de modelo por coordenada",
-    "uso": "en vivo: capa de clima, KPI de temperatura y curva de temperatura 24 h",
-    "nota": "Uso gratuito no comercial. Consultada en tiempo de ejecución; si falla se usa el respaldo simulado etiquetado."
+    "uso": "ninguno: reemplazada como fuente primaria de clima por DWD Open Data",
+    "nota": "Se conserva como alternativa técnica documentada; la capa de clima usa observaciones DWD."
   },
   {
     "id": "openaq",

@@ -3,6 +3,7 @@ import { safeFetchJson } from "@/lib/http";
 import type { WeatherPoint } from "@/lib/types";
 import { MOCK_WEATHER } from "@/data/mock";
 import { DISTRICT_LIST } from "@/data/districts";
+import { DWD_STATIONS, fetchDwdObservations, type DwdObservation } from "./dwdWeather";
 
 // Respuesta parcial de Open-Meteo Forecast (/forecast con current=...).
 interface OpenMeteoForecast {
@@ -35,6 +36,28 @@ export async function fetchWeather(): Promise<{
 }> {
   if (CONFIG.useMockData) return { data: MOCK_WEATHER, source: "mock" };
 
+  const dwdData = await fetchDwdObservations();
+  if (dwdData.length > 0) {
+    return {
+      data: DISTRICT_LIST.map((district) => {
+        const station = nearestStation(district.point);
+        const observation = nearestObservation(station.id, dwdData) ?? dwdData[0];
+        return {
+          id: `wx-${district.id}`,
+          location: district.name,
+          position: district.point,
+          temperature: Math.round(observation.temperature * 10) / 10,
+          humidity: Math.round(observation.humidity),
+          windSpeed: Math.round(observation.windSpeed * 10) / 10,
+          weatherCode: observation.weatherCode,
+          updatedAt: observation.observedAt,
+        };
+      }),
+      source: "live",
+    };
+  }
+
+  // Mantiene la disponibilidad de la capa si DWD está temporalmente caído.
   const results = await Promise.all(
     DISTRICT_LIST.map(async (d) => {
       const [lon, lat] = d.point;
@@ -61,6 +84,28 @@ export async function fetchWeather(): Promise<{
   return data.length > 0
     ? { data, source: "live" }
     : { data: MOCK_WEATHER, source: "mock" };
+}
+
+function nearestStation(position: readonly [number, number]) {
+  return DWD_STATIONS.reduce((nearest, station) =>
+    distanceSquared(position, station.position) < distanceSquared(position, nearest.position)
+      ? station
+      : nearest,
+  );
+}
+
+function nearestObservation(
+  stationId: string,
+  observations: readonly DwdObservation[],
+): DwdObservation | null {
+  return observations.find((observation) => observation.stationId === stationId) ?? null;
+}
+
+function distanceSquared(
+  [lonA, latA]: readonly [number, number],
+  [lonB, latB]: readonly [number, number],
+): number {
+  return (lonA - lonB) ** 2 + (latA - latB) ** 2;
 }
 
 /** Texto legible para un código de tiempo WMO. */

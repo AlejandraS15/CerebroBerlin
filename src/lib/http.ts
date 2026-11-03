@@ -23,3 +23,26 @@ export async function safeFetchJson<T>(
     clearTimeout(timer);
   }
 }
+
+/** Cliente de texto con el mismo timeout y fallback explícito que JSON. */
+export async function safeFetchText(
+    url: string,
+    options: RequestInit & { timeoutMs?: number } = {},
+  ): Promise<string | null> {
+    const { timeoutMs = 8000, ...init } = options;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, {
+        ...init,
+        signal: controller.signal,
+        headers: { Accept: "text/plain,text/csv", ...(init.headers ?? {}) },
+      });
+      if (!res.ok) return null;
+      return await res.text();
+    } catch {
+      return null;
+    } finally {
+      clearTimeout(timer);
+    }
+}

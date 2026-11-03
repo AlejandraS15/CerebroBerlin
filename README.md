@@ -103,7 +103,7 @@ berlin-digital-twin/
 |---------|--------|----------|
 | Transporte público (U/S-Bahn, bus) + salidas en tiempo real | **BVG / VBB** vía [`v6.bvg.transport.rest`](https://v6.bvg.transport.rest) | `services/transit.ts` |
 | Calidad del aire (PM2.5, NO2, O3, AQI europeo) | **Open-Meteo Air Quality** | `services/airQuality.ts` |
-| Clima (temperatura, humedad, viento) | **Open-Meteo Forecast** | `services/weather.ts` |
+| Clima (temperatura, humedad, viento) | **DWD Open Data**, observaciones vivas de estaciones de Berlín | `services/dwdWeather.ts`, `services/weather.ts` |
 | Micromovilidad (bicis/scooters) | **GBFS** (Nextbike/TIER…) | `services/bikeshare.ts` |
 | Incidencias, obras, bloqueos y congestión | **InfraNode** (SenMVKU, DATEX-II) | `services/trafficReports.ts` |
 | Catastro, demografía, uso de suelo | **Datenportal Berlin** (`daten.berlin.de` / CKAN) | `services/openData.ts` |
@@ -231,6 +231,7 @@ Todas las variables son **opcionales**:
 | `NEXT_PUBLIC_VBB_API_BASE` | Base de la API de BVG/VBB | `v6.bvg.transport.rest` |
 | `NEXT_PUBLIC_AIR_QUALITY_API_BASE` | Base de Open-Meteo (aire) | `air-quality-api.open-meteo.com/v1` |
 | `NEXT_PUBLIC_WEATHER_API_BASE` | Base de Open-Meteo (clima) | `api.open-meteo.com/v1` |
+| `NEXT_PUBLIC_DWD_WEATHER_BASE` | Observaciones CSV vivas del DWD | `opendata.dwd.de/weather/weather_reports/poi` |
 | `NEXT_PUBLIC_BERLIN_OPENDATA_BASE` | CKAN de Berlín | `datenregister.berlin.de/api/3` |
 | `NEXT_PUBLIC_GBFS_URL` | Feed GBFS de micromovilidad | Nextbike |
 | `NEXT_PUBLIC_TRAFFIC_REPORTS_API_BASE` | Base de InfraNode para incidencias de tráfico | `https://infranode.dev` |
