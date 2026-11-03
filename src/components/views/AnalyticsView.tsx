@@ -56,7 +56,7 @@ export function AnalyticsView() {
 
   return (
     <div className="h-full flex-1 overflow-y-auto bg-base-900">
-      <div className="mx-auto w-full max-w-5xl p-4 md:p-6">
+      <div className="mx-auto w-full max-w-[98%] p-4 md:p-6">
         <header className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <div>
             <h1 className="text-lg font-semibold text-slate-100">Dashboard · Analítica</h1>
