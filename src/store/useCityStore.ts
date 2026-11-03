@@ -47,6 +47,7 @@ export interface CityState {
   /** Distrito seleccionado (para el popup/detalle). */
   selectedDistrict: District | null;
   setSelectedDistrict: (d: District | null) => void;
+  toggleSelectedDistrict: (d: District) => void;
 
   /** Vista 3D activada. */
   is3D: boolean;
@@ -117,6 +118,8 @@ export function createCityStore(): UseBoundStore<StoreApi<CityState>> {
 
     selectedDistrict: null,
     setSelectedDistrict: (d) => set({ selectedDistrict: d }),
+    toggleSelectedDistrict: (d) =>
+      set((s) => ({ selectedDistrict: s.selectedDistrict?.id === d.id ? null : d })),
 
     is3D: true,
     toggle3D: () => set((s) => ({ is3D: !s.is3D })),

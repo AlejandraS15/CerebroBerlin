@@ -48,7 +48,7 @@ export function MapContainer() {
   const infrastructureQuery = useCityStore((s) => s.infrastructureQuery);
   const selectedHour = useCityStore((s) => s.selectedHour);
   const is3D = useCityStore((s) => s.is3D);
-  const setSelectedDistrict = useCityStore((s) => s.setSelectedDistrict);
+  const toggleSelectedDistrict = useCityStore((s) => s.toggleSelectedDistrict);
   const selectedDistrictId = useCityStore((s) => s.selectedDistrict?.id ?? null);
   const pinned = useCityStore((s) => s.pinned);
   const pin = useCityStore((s) => s.pin);
@@ -103,8 +103,8 @@ export function MapContainer() {
   const { sampler, elevationVersion } = useTerrainElevation(mapRef, terrainPoints);
 
   const onDistrictClick = useCallback(
-    (d: District) => setSelectedDistrict(d),
-    [setSelectedDistrict],
+    (d: District) => toggleSelectedDistrict(d),
+    [toggleSelectedDistrict],
   );
 
   const layers = useMemo(() => {

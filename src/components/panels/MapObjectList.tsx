@@ -21,7 +21,7 @@ export function MapObjectList() {
   const { data } = useCityData();
   const map = useMap().current;
   const pin = useCityStore((s) => s.pin);
-  const setSelectedDistrict = useCityStore((s) => s.setSelectedDistrict);
+  const toggleSelectedDistrict = useCityStore((s) => s.toggleSelectedDistrict);
   const buttonsRef = useRef<Map<string, HTMLButtonElement | null>>(new Map());
 
   if (!data) return null;
@@ -46,7 +46,7 @@ export function MapObjectList() {
     pin({ kind, id, anchor: anchorFor(point), returnFocusTo: trigger });
     if (kind === "district") {
       const d = districts.find((x) => x.id === id);
-      if (d) setSelectedDistrict(d);
+      if (d) toggleSelectedDistrict(d);
     }
   }
 
