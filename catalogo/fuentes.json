@@ -60,6 +60,21 @@
     "nota": "HTTP 200. Solo el código del proyecto declara licencia (Apache-2.0); los datos servidos no declaran licencia propia. Agrega fuentes de terceros; no se integra para no duplicar Open-Meteo."
   },
   {
+    "id": "infranode-traffic-reports",
+    "nombre": "InfraNode Live Berlin Traffic Reports (Mobilithek DATEX-II)",
+    "entidad": "Senatsverwaltung für Mobilität, Verkehr, Klimaschutz und Umwelt Berlin (SenMVKU), vía InfraNode",
+    "url": "https://infranode.dev/en/api/getLiveBerlinTrafficReports/",
+    "cobertura": "Incidencias, obras, bloqueos y congestión de tráfico en Berlín",
+    "vigencia": "tiempo real",
+    "probado": "2026-11-03",
+    "estado": "integrado",
+    "licencia": "Datenlizenz Deutschland – Namensnennung – Version 2.0",
+    "personas": "no",
+    "proteccion": "ninguna: eventos de tráfico agregados, sin datos personales",
+    "uso": "en vivo: capa de puntos críticos con incidencias, obras, bloqueos y congestión",
+    "nota": "Endpoint GET /api/v1/live/berlin/traffic-reports. La respuesta observada contiene un sobre live con payload.events y coordenadas WGS84; si la fuente no responde no se crean eventos simulados."
+  },
+  {
     "id": "luftguetemessnetz",
     "nombre": "Berliner Luftgütemessnetz (BLUME), API luftdaten.berlin.de",
     "entidad": "Senatsverwaltung für Mobilität, Verkehr, Klimaschutz und Umwelt Berlin, Abteilung II",
@@ -253,5 +268,20 @@
     "proteccion": "conteos agregados por distrito",
     "uso": "ninguno: descartada",
     "nota": "Excluido: la consulta SPARQL de población por distrito devolvió 0 filas."
+  },
+  {
+    "id": "openstreetmap-daten-f-r-berlin",
+    "nombre": "OpenStreetMap Daten für Berlin",
+    "entidad": "OpenStreetMap / Geofabrik",
+    "url": "https://daten.berlin.de/datensaetze/openstreetmap-daten-f-r-berlin",
+    "cobertura": "Equipamientos públicos y puntos de interés de Berlín, extraídos de las capas OSM POI puntuales y poligonales",
+    "vigencia": "snapshot 2026-11-02",
+    "probado": "2026-11-03",
+    "estado": "integrado",
+    "licencia": "Open Data Commons Open Database License (ODbL)",
+    "personas": "no",
+    "proteccion": "ninguna: puntos de interés públicos sin datos personales",
+    "uso": "lago/infraestructura.json → capa de hospitales, educación, bibliotecas, museos, cultura, deporte y servicios",
+    "nota": "El snapshot se construye con el recurso berlin-latest-free.shp.zip de Geofabrik. Se filtran equipamientos con nombre dentro del BBOX de Berlín y se conserva el osmId para trazabilidad. Atribución: © OpenStreetMap contributors."
   }
 ]

@@ -22,6 +22,8 @@ const HIDDEN_FROM_CONTROLLER: ReadonlySet<LayerCategory["id"]> = new Set([
 export function LayerController() {
   const visibility = useCityStore((s) => s.layerVisibility);
   const toggleLayer = useCityStore((s) => s.toggleLayer);
+  const infrastructureQuery = useCityStore((s) => s.infrastructureQuery);
+  const setInfrastructureQuery = useCityStore((s) => s.setInfrastructureQuery);
 
   const layers = LAYER_CATALOG.filter((l) => !HIDDEN_FROM_CONTROLLER.has(l.id));
 
@@ -34,6 +36,10 @@ export function LayerController() {
             layer={layer}
             active={visibility[layer.id]}
             onToggle={() => toggleLayer(layer.id)}
+            infrastructureQuery={layer.id === "infrastructure" ? infrastructureQuery : undefined}
+            onInfrastructureQueryChange={
+              layer.id === "infrastructure" ? setInfrastructureQuery : undefined
+            }
           />
         ))}
       </ul>
@@ -45,10 +51,14 @@ function LayerRow({
   layer,
   active,
   onToggle,
+  infrastructureQuery,
+  onInfrastructureQueryChange,
 }: {
   layer: LayerCategory;
   active: boolean;
   onToggle: () => void;
+  infrastructureQuery?: string;
+  onInfrastructureQueryChange?: (query: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const panelId = `layer-legend-${layer.id}`;
@@ -105,6 +115,41 @@ function LayerRow({
           </span>
         </button>
       </div>
+
+      {layer.id === "infrastructure" && active && onInfrastructureQueryChange && (
+        <div className="px-3 pb-2.5">
+          <label
+            htmlFor="infrastructure-search"
+            className="mb-1 block text-[10px] font-medium uppercase tracking-wide text-slate-400"
+          >
+            Buscar equipamiento
+          </label>
+          <div className="relative">
+            <input
+              id="infrastructure-search"
+              type="search"
+              value={infrastructureQuery}
+              onChange={(event) => onInfrastructureQueryChange(event.target.value)}
+              placeholder="Ej. hospital, museo o biblioteca"
+              className="w-full rounded-md border border-base-500/60 bg-base-900/80 px-2.5 py-1.5 pr-8 text-xs text-slate-100 outline-none placeholder:text-slate-500 focus:border-accent/70 focus:ring-1 focus:ring-accent/40"
+              aria-describedby="infrastructure-search-help"
+            />
+            {infrastructureQuery && (
+              <button
+                type="button"
+                onClick={() => onInfrastructureQueryChange("")}
+                aria-label="Limpiar búsqueda de infraestructura"
+                className="absolute right-1 top-1/2 -translate-y-1/2 px-1 text-slate-400 hover:text-slate-100"
+              >
+                ×
+              </button>
+            )}
+          </div>
+          <p id="infrastructure-search-help" className="mt-1 text-[10px] text-slate-500">
+            Filtra por nombre o categoría. Al limpiar se muestran todos.
+          </p>
+        </div>
+      )}
 
       {/* Desplegable con la explicación de qué se verá en el mapa. */}
       {layer.legend && (

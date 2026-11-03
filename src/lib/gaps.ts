@@ -56,18 +56,6 @@ const HUECOS_METRICAS: Gap[] = [
     motivo:
       "El feed GBFS de nextbike da disponibilidad instantánea, no viajes por hora; no hay serie horaria de uso.",
   },
-  {
-    id: "puntos-criticos",
-    kind: "metrica-retirada",
-    titulo: "Puntos críticos (hotspots)",
-    motivo: "Capa de datos de ejemplo sin fuente; oculta por defecto y etiquetada como ejemplo.",
-  },
-  {
-    id: "infraestructura",
-    kind: "metrica-retirada",
-    titulo: "Infraestructura destacada",
-    motivo: "Capa de datos de ejemplo sin fuente; oculta por defecto y etiquetada como ejemplo.",
-  },
 ];
 
 // ── Fuentes caídas que se declaran como huecos ───────────────
@@ -82,8 +70,8 @@ const COBERTURA_EDAD_COMPLETA = 100;
 /**
  * Construye la Lista_de_Huecos a partir del catálogo y de los distritos.
  *
- * - Métricas retiradas sin fuente (edad mediana, demanda energética, uso
- *   horario de bicis, puntos críticos, infraestructura).
+ * - Métricas retiradas sin fuente (edad mediana, demanda energética y uso
+ *   horario de bicis).
  * - Cobertura parcial de edad: distritos cuyo `ageCoveragePct` < 100 %.
  * - Fuentes `caído` relevantes (VBB transport.rest y Einwohner LOR CSV), con
  *   el motivo tomado de la nota del catálogo.

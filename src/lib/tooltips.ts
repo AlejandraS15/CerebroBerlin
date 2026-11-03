@@ -35,7 +35,7 @@ import { LAYER_CATALOG } from "@/lib/layers";
 const TRAFFIC_VIGENCIA = "perfil típico de junio de 2025";
 
 /** `example === true` de una capa (constante por tipo, no por dato). */
-function layerIsExample(id: "hotspots" | "infrastructure"): boolean {
+function layerIsExample(id: "hotspots"): boolean {
   return LAYER_CATALOG.find((l) => l.id === id)?.example === true;
 }
 
@@ -189,8 +189,10 @@ function hotspotTooltip(data: CityDataset, id: string): TooltipContent | null {
 function infraTooltip(data: CityDataset, id: string): TooltipContent | null {
   const p: InfrastructurePoint | undefined = data.infrastructure.find((x) => x.id === id);
   if (!p) return null;
-  const example = layerIsExample("infrastructure");
-  const rows: TooltipRow[] = [{ label: "Categoría", value: p.category, example }];
+  const rows: TooltipRow[] = [
+    { label: "Categoría", value: p.category },
+    { label: "ID OSM", value: p.osmId },
+  ];
   return { target: { kind: "infra", id: p.id }, title: p.name, rows };
 }
 

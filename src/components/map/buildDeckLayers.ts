@@ -32,6 +32,8 @@ import {
 interface BuildArgs {
   data: CityDataset;
   visibility: Record<LayerId, boolean>;
+  /** Texto opcional para limitar los equipamientos mostrados. */
+  infrastructureQuery?: string;
   /** Hora del timeline (0-23); modula detectores de tráfico. */
   hour: number;
   /** Muestreador de cotas del terreno; respaldo 0 m sin terreno. */
@@ -112,6 +114,7 @@ const SEVERITY_COLOR: Record<number, Color> = {
 export function buildDeckLayers({
   data,
   visibility,
+  infrastructureQuery = "",
   hour,
   sampler,
   elevationVersion,
@@ -125,6 +128,9 @@ export function buildDeckLayers({
   // Tramos de vía (polilíneas por corredor) a partir de los detectores.
   const trafficRoads = buildTrafficRoadSegments(data.trafficDetectors);
   const trafficDetectors = data.trafficDetectors;
+  const infrastructure = data.infrastructure.filter((point) =>
+    matchesInfrastructureQuery(point, infrastructureQuery),
+  );
 
   // ── Demografía: coropletas de distritos con vértices elevados ──
   const elevatedFeatures: DistrictFeature[] = data.districts.features.map((f) => ({
@@ -143,7 +149,7 @@ export function buildDeckLayers({
       : [34, 211, 238, 180];
 
   layers.push(
-    new GeoJsonLayer({
+    new GeoJsonLayer<District>({
       id: "districts",
       data: elevatedFeatures,
       visible: visibility.demographics,
@@ -155,7 +161,7 @@ export function buildDeckLayers({
       getLineColor: districtLine as unknown as Color,
       lineWidthMinPixels: 1,
       lineWidthUnits: "pixels",
-      getLineWidth: (f: DistrictFeature) =>
+      getLineWidth: (f) =>
         f.properties.id === selectedDistrictId ? 3 : 1,
       updateTriggers: {
         getPosition: elevationVersion,
@@ -323,9 +329,13 @@ export function buildDeckLayers({
   layers.push(
     new IconLayer<InfrastructurePoint>({
       id: "infrastructure",
-      data: data.infrastructure,
+      data: infrastructure,
       visible: visibility.infrastructure,
       pickable: true,
+      // Los edificios 3D pertenecen al canvas de MapLibre y pueden cubrir
+      // iconos situados a cota de suelo. Los iconos son marcadores de POI y
+      // deben permanecer visibles sobre el volumen urbano.
+      parameters: { depthCompare: "always" },
       getPosition: (d) => withElevation(d.position, sampler),
       getIcon: (d) => ({
         id: d.category,
@@ -345,7 +355,7 @@ export function buildDeckLayers({
     }),
   );
 
-  // ── Puntos críticos (datos de ejemplo): radio por severidad ──
+  // ── Puntos críticos publicados por la fuente de tráfico: radio por severidad ──
   layers.push(
     new ScatterplotLayer<Hotspot>({
       id: "hotspots",
@@ -374,6 +384,21 @@ export function buildDeckLayers({
   return layers;
 }
 
+function matchesInfrastructureQuery(point: InfrastructurePoint, query: string): boolean {
+  const normalizedQuery = normalizeSearchText(query);
+  if (!normalizedQuery) return true;
+  return [point.name, point.category].some((value) =>
+    normalizeSearchText(value).includes(normalizedQuery),
+  );
+}
+
+function normalizeSearchText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase();
+}
+
 /**
  * SVG en línea (data URL) por categoría de infraestructura. Se usa un IconLayer
  * en vez de emojis de texto para garantizar un icono nítido y coherente con el
@@ -385,21 +410,27 @@ const INFRA_ICON_SVG: Record<InfrastructurePoint["category"], string> = {
     "#e11d48",
     '<rect x="15" y="9" width="6" height="18" rx="1.2" fill="#fff"/><rect x="9" y="15" width="18" height="6" rx="1.2" fill="#fff"/>',
   ),
+  salud: svgIcon("#e11d48", '<circle cx="18" cy="18" r="8" fill="#fff"/>'),
   // Escuela: birrete.
   escuela: svgIcon(
     "#2563eb",
     '<path d="M18 11 7 16l11 5 8-3.6V22a1 1 0 0 0 2 0v-5l1-.5z" fill="#fff"/><path d="M12 19v3.2c0 1.5 2.7 2.8 6 2.8s6-1.3 6-2.8V19l-6 2.7z" fill="#fff" opacity="0.8"/>',
   ),
+  educacion: svgIcon("#2563eb", '<path d="M8 16h20v11H8z" fill="#fff"/>'),
+  universidad: svgIcon("#4f46e5", '<path d="M7 14 18 8l11 6-11 6z" fill="#fff"/>'),
+  biblioteca: svgIcon("#0f766e", '<path d="M9 10h3v17H9zm7 0h4v17h-4zm8 0h3v17h-3z" fill="#fff"/>'),
+  museo: svgIcon("#a855f7", '<path d="M7 13h22v3H7zm3 5h3v8h-3zm7 0h3v8h-3zm7 0h3v8h-3z" fill="#fff"/>'),
   // Cultura: columnas de un edificio cultural (museo/teatro).
   cultura: svgIcon(
     "#a855f7",
-    '<path d="M18 8 8 13v2h20v-2z" fill="#fff"/><rect x="10" y="16" width="2.5" height="8" fill="#fff"/><rect x="16.75" y="16" width="2.5" height="8" fill="#fff"/><rect x="23.5" y="16" width="2.5" height="8" fill="#fff"/><rect x="8" y="25" width="20" height="2.5" fill="#fff"/>',
+    '<path d="M18 8 8 13v2h20v-2z" fill="#fff"/><rect x="10" y="16" width="2.5" height="8" fill="#fff"/><rect x="16.75" y="16" width="2.5" height="8" fill="#fff"/><rect x="23.5" y="16" width="2.5" height="8" fill="#fff"/> <rect x="8" y="25" width="20" height="2.5" fill="#fff"/>',
   ),
-  // Energía: rayo.
-  energia: svgIcon(
-    "#f59e0b",
-    '<path d="M19 7 11 19h6l-2 10 10-14h-6z" fill="#fff"/>',
-  ),
+  comunidad: svgIcon("#db2777", '<circle cx="13" cy="15" r="4" fill="#fff"/><circle cx="23" cy="15" r="4" fill="#fff"/>'),
+  deporte: svgIcon("#16a34a", '<circle cx="18" cy="18" r="9" fill="#fff"/>'),
+  emergencias: svgIcon("#ea580c", '<path d="M18 7 10 22h6l-2 8 10-16h-6z" fill="#fff"/>'),
+  seguridad: svgIcon("#334155", '<path d="M18 7 28 11v7c0 6-4 10-10 12C12 28 8 24 8 18v-7z" fill="#fff"/>'),
+  justicia: svgIcon("#7c3aed", '<path d="M8 13h20v3H8zm3 5h3v8h-3zm7 0h3v8h-3zm7 0h3v8h-3z" fill="#fff"/>'),
+  administracion: svgIcon("#475569", '<path d="M7 13h22v3H7zm3 5h3v8h-3zm7 0h3v8h-3zm7 0h3v8h-3z" fill="#fff"/>'),
   // Agua: gota.
   agua: svgIcon(
     "#0ea5e9",

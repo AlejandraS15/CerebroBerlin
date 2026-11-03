@@ -9,9 +9,10 @@
  * - `snapshot`: cifra del lago confirmado en git.
  * - `live`: consultado en tiempo de ejecución.
  * - `mock`: simulado (fallback); se muestra con la insignia "simulado".
- * - `example`: datos de ejemplo sin fuente (hotspots, infraestructura).
+ * - `example`: datos de ejemplo sin fuente.
+ * - `unavailable`: la fuente no respondió y no se muestran datos simulados.
  */
-export type Origin = "snapshot" | "live" | "mock" | "example";
+export type Origin = "snapshot" | "live" | "mock" | "example" | "unavailable";
 
 /** Estado de una Ficha_de_Fuente del catálogo. */
 export type SourceState = "integrado" | "candidato" | "caído" | "declarado" | "excluido";
@@ -93,7 +94,7 @@ export interface LayerCategory {
   };
   /** Ignorado (forzado a false) si `example === true`. */
   defaultVisible: boolean;
-  /** Constante por tipo: true en hotspots e infraestructura (datos de ejemplo sin fuente). */
+  /** Constante por tipo: true en capas de datos de ejemplo sin fuente. */
   example?: boolean;
 }
 
@@ -250,7 +251,7 @@ export interface WeatherPoint {
   updatedAt: string;
 }
 
-/** Punto crítico / incidencia (accidente, obra, alerta). Datos de ejemplo. */
+/** Punto crítico / incidencia publicado por una fuente de tráfico. */
 export interface Hotspot {
   id: string;
   type: "accidente" | "obra" | "congestion" | "alerta";
@@ -261,12 +262,30 @@ export interface Hotspot {
   reportedAt: string;
 }
 
-/** Elemento de infraestructura destacada. Datos de ejemplo. */
+export type InfrastructureCategory =
+  | "hospital"
+  | "salud"
+  | "escuela"
+  | "educacion"
+  | "universidad"
+  | "biblioteca"
+  | "museo"
+  | "cultura"
+  | "comunidad"
+  | "deporte"
+  | "emergencias"
+  | "seguridad"
+  | "justicia"
+  | "administracion"
+  | "agua";
+
+/** Equipamiento OSM del snapshot de infraestructura. */
 export interface InfrastructurePoint {
   id: string;
-  category: "hospital" | "escuela" | "cultura" | "energia" | "agua";
+  category: InfrastructureCategory;
   name: string;
   position: [number, number];
+  osmId: string;
 }
 
 // ── Series temporales ────────────────────────────────────────
@@ -348,7 +367,7 @@ export interface CityDataset {
   hotspots: Hotspot[];
   infrastructure: InfrastructurePoint[];
   timeSeries: TimeSeriesPoint[];
-  /** Origen efectivo de cada bloque (districts/traffic "snapshot"; hotspots/infrastructure "example"). */
+  /** Origen efectivo de cada bloque (infraestructura procede del snapshot OSM). */
   source: Record<BlockId, Origin>;
   /** Momento de consulta de los bloques en vivo. */
   fetchedAt: Partial<Record<BlockId, string>>;

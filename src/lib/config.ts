@@ -30,6 +30,8 @@ export const CONFIG = {
   gbfsUrl:
     process.env.NEXT_PUBLIC_GBFS_URL ||
     "https://gbfs.nextbike.net/maps/gbfs/v2/nextbike_bn/gbfs.json",
+  trafficReportsApiBase:
+    process.env.NEXT_PUBLIC_TRAFFIC_REPORTS_API_BASE || "https://infranode.dev",
   useMockData: process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true",
 } as const;
 

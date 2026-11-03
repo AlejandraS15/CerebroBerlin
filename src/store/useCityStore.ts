@@ -26,6 +26,9 @@ export interface CityState {
   layerVisibility: Record<LayerId, boolean>;
   toggleLayer: (id: LayerId) => void;
   setLayer: (id: LayerId, visible: boolean) => void;
+  /** Texto de búsqueda aplicado a la capa de infraestructura. */
+  infrastructureQuery: string;
+  setInfrastructureQuery: (query: string) => void;
 
   /** Hora seleccionada en el timeline (0-23). */
   selectedHour: number;
@@ -90,6 +93,9 @@ export function createCityStore(): UseBoundStore<StoreApi<CityState>> {
       })),
     setLayer: (id, visible) =>
       set((s) => ({ layerVisibility: { ...s.layerVisibility, [id]: visible } })),
+
+    infrastructureQuery: "",
+    setInfrastructureQuery: (query) => set({ infrastructureQuery: query }),
 
     // Valor determinista para evitar desajustes de hidratación (server vs client).
     // La hora real de Berlín se aplica tras el montaje (ver useTimelinePlayer).

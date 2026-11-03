@@ -24,15 +24,15 @@ describe("fetchCityData (modo mock, offline)", () => {
     expect(data.timeSeries.length).toBe(24);
   });
 
-  it("marca el origen de cada bloque: snapshot para distritos y tráfico, example para ejemplo", async () => {
+  it("marca el origen de cada bloque y no simula incidencias sin API", async () => {
     const { fetchCityData } = await import("./cityData");
     const data = await fetchCityData();
 
     // `source` es Record<BlockId, Origin>.
     expect(data.source.districts).toBe("snapshot");
     expect(data.source.traffic).toBe("snapshot");
-    expect(data.source.hotspots).toBe("example");
-    expect(data.source.infrastructure).toBe("example");
+    expect(data.source.hotspots).toBe("unavailable");
+    expect(data.source.infrastructure).toBe("snapshot");
 
     // En modo mock las fuentes en vivo degradan a "mock".
     expect(data.source.air).toBe("mock");
