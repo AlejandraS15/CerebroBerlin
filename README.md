@@ -15,11 +15,11 @@ Interfaz moderna, responsiva y en **modo oscuro por defecto**.
 
 - **Mapa central interactivo** (MapLibre GL + Deck.gl): terreno 3D con relieve, edificios extruidos con su altura real (OSM), cielo con niebla de horizonte, *heatmaps* y marcadores.
 - **Sidebar / Panel lateral**:
-  - **Layer Control**: Movilidad, Calidad del Aire, Demografía, Infraestructura, Puntos Críticos.
+  - **Layer Control**: Movilidad, Estaciones de Aire, Clima, Demografía, Infraestructura y Puntos Críticos.
   - **Dashboard analítico**: KPIs en tiempo real y gráficos dinámicos (Recharts).
 - **Línea de tiempo (24h)**: slider + reproducción automática que anima la actividad urbana y sincroniza los charts.
 - **Popups / Tooltips**: al pasar el cursor por estaciones/sensores y al hacer clic en distritos (Mitte, Kreuzberg, Pankow…).
-- **Datos en tiempo real con fallback**: cada servicio intenta la API pública y, si falla o no hay red, usa datos *mock* coherentes. La app **funciona sin ninguna API key**.
+- **Datos en tiempo real con fallback**: cada servicio intenta la API pública y, si falla o no hay red, usa datos *mock* coherentes cuando existe un respaldo. Las incidencias y bloqueos no se simulan: si InfraNode no responde, la capa queda vacía y se marca como no disponible.
 
 ---
 
@@ -101,13 +101,16 @@ berlin-digital-twin/
 
 | Dominio | Fuente | Servicio |
 |---------|--------|----------|
-| Transporte público (U/S-Bahn, bus) + salidas en tiempo real | **VBB / BVG** vía [`v6.vbb.transport.rest`](https://v6.vbb.transport.rest) | `services/transit.ts` |
+| Transporte público (U/S-Bahn, bus) + salidas en tiempo real | **BVG / VBB** vía [`v6.bvg.transport.rest`](https://v6.bvg.transport.rest) | `services/transit.ts` |
 | Calidad del aire (PM2.5, NO2, O3, AQI europeo) | **Open-Meteo Air Quality** | `services/airQuality.ts` |
-| Clima (temperatura, humedad, viento) | **Open-Meteo Forecast** | `services/weather.ts` |
+| Clima (temperatura, humedad, viento) | **DWD Open Data**, observaciones vivas de estaciones de Berlín | `services/dwdWeather.ts`, `services/weather.ts` |
 | Micromovilidad (bicis/scooters) | **GBFS** (Nextbike/TIER…) | `services/bikeshare.ts` |
+| Incidencias, obras, bloqueos y congestión | **InfraNode** (SenMVKU, DATEX-II) | `services/trafficReports.ts` |
 | Catastro, demografía, uso de suelo | **Datenportal Berlin** (`daten.berlin.de` / CKAN) | `services/openData.ts` |
 | Cartografía base + edificios 3D | **OpenFreeMap** (OpenMapTiles / OpenStreetMap) | `lib/mapStyle.ts` |
 | Terreno (modelo de elevación) | **Mapzen / AWS Terrarium** | `lib/mapStyle.ts` |
+| Equipamientos urbanos (hospitales, colegios, bibliotecas, museos y más) | **OpenStreetMap vía Geofabrik** | `lago/infraestructura.json` |
+| Mercadillos, mercados de productores y mini mercados | **Berlin.de SimpleSearch** | Catálogo de fuentes y huecos |
 
 > Los límites de distritos usan geometrías simplificadas empaquetadas para
 > funcionar *offline*. Para producción, sustitúyelas por los límites oficiales
@@ -225,11 +228,13 @@ Todas las variables son **opcionales**:
 |----------|-------------|-------------|
 | `NEXT_PUBLIC_MAP_STYLE_URL` | Estilo base MapLibre (esquema OpenMapTiles) | OpenFreeMap dark |
 | `NEXT_PUBLIC_TERRAIN_TILES_URL` | Teselas DEM Terrarium para el terreno 3D | Mapzen/AWS Terrarium |
-| `NEXT_PUBLIC_VBB_API_BASE` | Base de la API de VBB | `v6.vbb.transport.rest` |
+| `NEXT_PUBLIC_VBB_API_BASE` | Base de la API de BVG/VBB | `v6.bvg.transport.rest` |
 | `NEXT_PUBLIC_AIR_QUALITY_API_BASE` | Base de Open-Meteo (aire) | `air-quality-api.open-meteo.com/v1` |
 | `NEXT_PUBLIC_WEATHER_API_BASE` | Base de Open-Meteo (clima) | `api.open-meteo.com/v1` |
+| `NEXT_PUBLIC_DWD_WEATHER_BASE` | Observaciones CSV vivas del DWD | `opendata.dwd.de/weather/weather_reports/poi` |
 | `NEXT_PUBLIC_BERLIN_OPENDATA_BASE` | CKAN de Berlín | `datenregister.berlin.de/api/3` |
 | `NEXT_PUBLIC_GBFS_URL` | Feed GBFS de micromovilidad | Nextbike |
+| `NEXT_PUBLIC_TRAFFIC_REPORTS_API_BASE` | Base de InfraNode para incidencias de tráfico | `https://infranode.dev` |
 | `NEXT_PUBLIC_USE_MOCK_DATA` | Forzar datos mock (`true`/`false`) | `false` |
 
 Para trabajar **100% offline**, pon `NEXT_PUBLIC_USE_MOCK_DATA=true`.
@@ -242,6 +247,27 @@ Para trabajar **100% offline**, pon `NEXT_PUBLIC_USE_MOCK_DATA=true`.
 2. Crea/extiende un servicio en `src/lib/services/` y agrégalo a `cityData.ts`.
 3. Añade la capa Deck.gl correspondiente en `src/components/map/buildDeckLayers.ts`.
 
+### Actualizar infraestructura OSM
+
+La capa de infraestructura se construye como snapshot desde el extracto de
+shapefiles de Berlín publicado por Geofabrik y catalogado en el portal de datos
+de Berlín (ODbL). El script usa las capas `pois` y `pois_a`, filtra
+equipamientos con nombre dentro del BBOX de Berlín y conserva `osmId` para
+trazabilidad.
+
+```bash
+python3 ingesta/pull_infraestructura.py --probado YYYY-MM-DD
+python3 verificacion/verificar.py
+```
+
+La reconstrucción completa (`ingesta/reconstruir.sh`) también actualiza este
+tema. En la interfaz, el origen aparece como `snapshot del lago` y la
+atribución requerida es **© OpenStreetMap contributors**.
+
+Al activar la capa **Infraestructura** en el panel lateral aparece un buscador
+por nombre o categoría. Una búsqueda como `hospital` limita temporalmente los
+marcadores visibles; al limpiar el campo se restaura todo el conjunto.
+
 El `LayerController` y el store la recogerán automáticamente.
 
 ---
@@ -249,8 +275,9 @@ El `LayerController` y el store la recogerán automáticamente.
 ## 📝 Notas de arquitectura
 
 - **Resiliencia:** `safeFetchJson` aplica *timeout* y nunca lanza; cada servicio
-  degrada a *mock* de forma transparente, marcando la fuente (`live`/`mock`),
-  visible en los *badges* del sidebar.
+  degrada a *mock* de forma transparente cuando tiene respaldo, marcando la fuente
+  (`live`/`mock`). La capa de incidencias usa `unavailable` y no inventa eventos si
+  InfraNode no responde; el estado queda visible en los *badges* del sidebar.
 - **Rendimiento:** el mapa se carga con `next/dynamic` (`ssr: false`) porque
   depende de WebGL; TanStack Query cachea y refresca en segundo plano.
 - **Estado:** Zustand gestiona visibilidad de capas, hora del timeline, distrito

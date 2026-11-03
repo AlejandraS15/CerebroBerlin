@@ -13,7 +13,7 @@ export const CONFIG = {
     process.env.NEXT_PUBLIC_TERRAIN_TILES_URL ||
     "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png",
   vbbApiBase:
-    process.env.NEXT_PUBLIC_VBB_API_BASE || "https://v6.vbb.transport.rest",
+    process.env.NEXT_PUBLIC_VBB_API_BASE || "https://v6.bvg.transport.rest",
   // Open-Meteo: APIs abiertas, sin token, con datos reales por coordenada.
   airQualityApiBase:
     process.env.NEXT_PUBLIC_AIR_QUALITY_API_BASE ||
@@ -21,6 +21,10 @@ export const CONFIG = {
   weatherApiBase:
     process.env.NEXT_PUBLIC_WEATHER_API_BASE ||
     "https://api.open-meteo.com/v1",
+  // DWD Open Data: observaciones vivas CSV por estación.
+  dwdWeatherBase:
+    process.env.NEXT_PUBLIC_DWD_WEATHER_BASE ||
+    "https://opendata.dwd.de/weather/weather_reports/poi",
   // Berliner Luftgütemessnetz (BLUME): estaciones de medición reales, sin token.
   luftgueteApiBase:
     process.env.NEXT_PUBLIC_LUFTGUETE_API_BASE || "https://luftdaten.berlin.de",
@@ -30,6 +34,8 @@ export const CONFIG = {
   gbfsUrl:
     process.env.NEXT_PUBLIC_GBFS_URL ||
     "https://gbfs.nextbike.net/maps/gbfs/v2/nextbike_bn/gbfs.json",
+  trafficReportsApiBase:
+    process.env.NEXT_PUBLIC_TRAFFIC_REPORTS_API_BASE || "https://infranode.dev",
   useMockData: process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true",
 } as const;
 

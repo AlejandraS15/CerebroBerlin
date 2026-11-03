@@ -1,13 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("@/lib/http", () => ({ safeFetchJson: vi.fn() }));
+vi.mock("@/lib/http", () => ({ safeFetchJson: vi.fn(), safeFetchText: vi.fn() }));
 
-import { safeFetchJson } from "@/lib/http";
+import { safeFetchJson, safeFetchText } from "@/lib/http";
 import { fetchWeather, buildWeatherUrl, weatherCodeLabel } from "./weather";
 import { MOCK_WEATHER } from "@/data/mock";
 import { DISTRICT_LIST } from "@/data/districts";
 
 const mocked = safeFetchJson as unknown as ReturnType<typeof vi.fn>;
+const mockedText = safeFetchText as unknown as ReturnType<typeof vi.fn>;
 
 describe("weatherCodeLabel", () => {
   it("traduce códigos WMO a texto", () => {
@@ -28,7 +29,11 @@ describe("buildWeatherUrl", () => {
 });
 
 describe("fetchWeather", () => {
-  beforeEach(() => mocked.mockReset());
+  beforeEach(() => {
+    mocked.mockReset();
+    mockedText.mockReset();
+    mockedText.mockResolvedValue(null);
+  });
 
   it("consulta el Punto_de_Distrito (d.point) de cada distrito del lago", async () => {
     mocked.mockResolvedValue({

@@ -3,13 +3,12 @@ import { safeFetchJson } from "@/lib/http";
 import type { Departure, SourceBlock, TransitStation } from "@/lib/types";
 import { MOCK_TRANSIT } from "@/data/mock";
 
-// Respuesta parcial del endpoint /stops de vbb.transport.rest (HAFAS).
+// Respuesta parcial del endpoint /locations/nearby de transport.rest (HAFAS).
 interface VbbStop {
   id: string;
   name: string;
   location?: { longitude?: number; latitude?: number };
   products?: Record<string, boolean>;
-  lines?: { name?: string }[];
 }
 
 // Respuesta parcial de /stops/{id}/departures.
@@ -54,8 +53,9 @@ async function fetchDepartures(stopId: string): Promise<Departure[]> {
 }
 
 /**
- * Obtiene estaciones de transporte cercanas al centro de Berlín desde la API
- * pública de VBB (transport.rest). Ante fallo o modo mock, devuelve datos mock.
+ * Obtiene paradas de transporte cercanas al centro de Berlín desde la API
+ * pública de BVG (transport.rest), incluidos los buses. Ante fallo o modo mock,
+ * devuelve datos mock.
  */
 export async function fetchTransit(): Promise<SourceBlock<TransitStation[]>> {
   if (CONFIG.useMockData) {
@@ -64,7 +64,7 @@ export async function fetchTransit(): Promise<SourceBlock<TransitStation[]>> {
 
   const cx = (BERLIN_BBOX.west + BERLIN_BBOX.east) / 2;
   const cy = (BERLIN_BBOX.south + BERLIN_BBOX.north) / 2;
-  const url = `${CONFIG.vbbApiBase}/stops/nearby?latitude=${cy}&longitude=${cx}&results=60&distance=8000&subway=true&suburban=true`;
+  const url = `${CONFIG.vbbApiBase}/locations/nearby?latitude=${cy}&longitude=${cx}&results=100&distance=8000`;
 
   const raw = await safeFetchJson<VbbStop[]>(url);
   if (!raw || !Array.isArray(raw) || raw.length === 0) {
@@ -77,7 +77,7 @@ export async function fetchTransit(): Promise<SourceBlock<TransitStation[]>> {
       id: s.id,
       name: s.name,
       mode: classifyMode(s.products),
-      lines: (s.lines ?? []).map((l) => l.name ?? "").filter(Boolean).slice(0, 6),
+      lines: [],
       position: [s.location!.longitude!, s.location!.latitude!] as [number, number],
     }));
 
@@ -85,13 +85,17 @@ export async function fetchTransit(): Promise<SourceBlock<TransitStation[]>> {
     return { data: MOCK_TRANSIT, origin: "mock", fetchedAt: null };
   }
 
-  // Enriquecemos las 6 primeras estaciones con salidas en tiempo real.
+  // Enriquecemos estaciones representativas, incluyendo buses, con salidas live.
   // Limitamos la cantidad para no saturar la API (rate limit 100/min).
   const withDepartures = await Promise.all(
-    data.slice(0, 6).map(async (s) => ({
-      ...s,
-      departures: await fetchDepartures(s.id),
-    })),
+    data.slice(0, 12).map(async (s) => {
+      const departures = await fetchDepartures(s.id);
+      return {
+        ...s,
+        lines: [...new Set(departures.map((d) => d.line).filter((line) => line !== "—"))].slice(0, 6),
+        departures,
+      };
+    }),
   );
   const merged = [...withDepartures, ...data.slice(6)];
 

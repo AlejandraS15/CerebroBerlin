@@ -74,6 +74,8 @@ export function originLabel(o: Origin): string {
       return "simulado";
     case "example":
       return "datos de ejemplo (sin fuente)";
+    case "unavailable":
+      return "fuente no disponible";
   }
 }
 

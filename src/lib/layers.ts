@@ -4,8 +4,7 @@ import type { LayerCategory } from "./types";
  * Catálogo de capas del gemelo digital. El LayerController las renderiza
  * y el store controla su visibilidad.
  *
- * `example: true` marca las capas de Datos_de_Ejemplo (hotspots e
- * infraestructura). Es una constante por tipo de capa: la etiqueta
+ * `example: true` marca las capas de Datos_de_Ejemplo. Es una constante por tipo de capa: la etiqueta
  * "datos de ejemplo (sin fuente)" se deriva de `LAYER_CATALOG[id].example`,
  * nunca del dato. Esas capas se fuerzan a invisibles al iniciar el store
  * (19.4) aunque `defaultVisible` dijera otra cosa; solo las activa un evento
@@ -16,7 +15,7 @@ export const LAYER_CATALOG: LayerCategory[] = [
     id: "mobility",
     label: "Movilidad",
     description:
-      "Estaciones de transporte público y micromovilidad: cada bolita es una parada de U-Bahn/S-Bahn o una estación de bicis.",
+      "Estaciones de transporte público y micromovilidad: cada icono representa una parada o estación de bicis.",
     icon: "🚇",
     // Las bolitas de transporte se colorean por modo; el cian es la micromovilidad (bicis).
     color: "#22d3ee",
@@ -129,7 +128,7 @@ export const LAYER_CATALOG: LayerCategory[] = [
     id: "infrastructure",
     label: "Infraestructura",
     description:
-      "Hospitales, escuelas, cultura y servicios. Cada punto usa el icono de su tipo. Datos de ejemplo (sin fuente).",
+      "Hospitales, escuelas, bibliotecas, museos y servicios públicos extraídos de OpenStreetMap.",
     icon: "🏛️",
     color: "#34d399",
     legend: {
@@ -137,19 +136,20 @@ export const LAYER_CATALOG: LayerCategory[] = [
       entries: [
         { icon: "🏥", meaning: "Hospital" },
         { icon: "🏫", meaning: "Escuela" },
-        { icon: "🎭", meaning: "Cultura (museos, teatros…)" },
-        { icon: "⚡", meaning: "Energía" },
-        { icon: "💧", meaning: "Agua" },
+        { icon: "📚", meaning: "Bibliotecas" },
+        { icon: "🏛️", meaning: "Museos y cultura" },
+        { icon: "🎓", meaning: "Educación y universidades" },
+        { icon: "⚽", meaning: "Deporte" },
+        { icon: "🚒", meaning: "Emergencias y seguridad" },
       ],
     },
     defaultVisible: false,
-    example: true,
   },
   {
     id: "hotspots",
     label: "Puntos Críticos",
     description:
-      "Incidencias, obras y congestión. La bolita más grande y roja indica mayor severidad. Datos de ejemplo (sin fuente).",
+      "Incidencias, obras, bloqueos y congestión publicados en vivo por SenMVKU vía InfraNode.",
     icon: "⚠️",
     color: "#fb7185",
     legend: {
@@ -161,7 +161,6 @@ export const LAYER_CATALOG: LayerCategory[] = [
       ],
     },
     defaultVisible: false,
-    example: true,
   },
 ];
 

@@ -27,9 +27,14 @@ for script in \
   ingesta/pull_territorio.py \
   ingesta/pull_poblacion.py \
   ingesta/pull_suelo.py \
-  ingesta/pull_trafico.py; do
+  ingesta/pull_trafico.py \
+  ingesta/pull_infraestructura.py; do
   echo "→ Ejecutando $script…"
-  python3 "$script"
+  if [ "$script" = "ingesta/pull_infraestructura.py" ]; then
+    python3 "$script" --probado "$(date +%F)"
+  else
+    python3 "$script"
+  fi
 done
 
 echo "→ Verificando el lago…"

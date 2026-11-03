@@ -2,10 +2,10 @@
  * Compone el snapshot completo de datos de la ciudad (`CityDataset`).
  *
  * Ejecuta en paralelo los servicios en vivo (aire, estaciones, horario, clima,
- * bicis, transporte); cada uno degrada a mock por su cuenta, así que esta
- * función nunca falla. Los límites de distrito y el perfil de tráfico vienen
- * del lago (`snapshot`); hotspots e infraestructura son datos de ejemplo
- * (`example`). La serie de 24 h se arma con `buildTimeSeries(perfil, horario)`.
+ * bicis y transporte); cada uno degrada a mock por su cuenta, así que esta
+ * función nunca falla. Los límites y el perfil histórico de tráfico vienen
+ * del lago (`snapshot`); las incidencias se consultan en vivo desde InfraNode.
+ * La serie de 24 h se arma con `buildTimeSeries(perfil, horario)`.
  */
 
 import type { BlockId, CityDataset, Origin } from "@/lib/types";
@@ -16,19 +16,20 @@ import { fetchTransit } from "./transit";
 import { fetchBikeshare } from "./bikeshare";
 import { fetchWeather } from "./weather";
 import { fetchDistricts } from "./openData";
+import { fetchTrafficReports } from "./trafficReports";
 import { buildTimeSeries } from "./timeSeries";
-import { MOCK_HOTSPOTS, MOCK_INFRA } from "@/data/mock";
-import { trafficProfile, trafficDetectors, lakeProbado } from "@/data/lake";
+import { trafficProfile, trafficDetectors, infraestructura, lakeProbado } from "@/data/lake";
 
 export async function fetchCityData(): Promise<CityDataset> {
   const districts = fetchDistricts(); // síncrono (lago)
-  const [air, airStations, hourly, transit, bikes, weather] = await Promise.all([
+  const [air, airStations, hourly, transit, bikes, weather, hotspots] = await Promise.all([
     fetchAirQuality(),
     fetchAirStations(),
     fetchHourly(),
     fetchTransit(),
     fetchBikeshare(),
     fetchWeather(),
+    fetchTrafficReports(),
   ]);
 
   const timeSeries = buildTimeSeries(trafficProfile, hourly.data);
@@ -45,8 +46,8 @@ export async function fetchCityData(): Promise<CityDataset> {
     airStations: airStations.origin,
     weather: weatherOrigin,
     hourly: hourly.origin,
-    hotspots: "example",
-    infrastructure: "example",
+    hotspots: hotspots.origin,
+    infrastructure: "snapshot",
   };
 
   const fetchedAt: Partial<Record<BlockId, string>> = {};
@@ -59,6 +60,7 @@ export async function fetchCityData(): Promise<CityDataset> {
   setAt("air", air.fetchedAt);
   setAt("airStations", airStations.fetchedAt);
   setAt("hourly", hourly.fetchedAt);
+  setAt("hotspots", hotspots.fetchedAt);
 
   return {
     districts: districts.data,
@@ -68,8 +70,8 @@ export async function fetchCityData(): Promise<CityDataset> {
     airStations: airStations.data,
     trafficDetectors,
     weather: weather.data,
-    hotspots: MOCK_HOTSPOTS,
-    infrastructure: MOCK_INFRA,
+    hotspots: hotspots.data,
+    infrastructure: infraestructura.puntos,
     timeSeries,
     source,
     fetchedAt,

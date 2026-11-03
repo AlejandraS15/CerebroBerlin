@@ -26,7 +26,7 @@ const source: Record<BlockId, Origin> = {
   weather: "mock",
   hourly: "mock",
   hotspots: "example",
-  infrastructure: "example",
+  infrastructure: "snapshot",
 };
 
 const dataset: CityDataset = {
@@ -82,6 +82,10 @@ describe("buildDeckLayers", () => {
     expect(ids).toContain("weather");
     expect(ids).toContain("hotspots");
     expect(ids).toContain("infrastructure");
+  });
+
+  it("does not include the removed synthetic air heatmap", () => {
+    const ids = buildDeckLayers({ ...base, sampler: sampler57 }).map((l) => l.id);
     expect(ids).not.toContain("air-heat");
   });
 
@@ -124,5 +128,28 @@ describe("buildDeckLayers", () => {
     // El color/grosor de cada tramo se recalcula al cambiar la hora del timeline.
     expect(triggers.getColor).toBe(hour);
     expect(triggers.getWidth).toBe(hour);
+  });
+
+  it("filtra infraestructura por nombre o categoría y restaura el total al limpiar", () => {
+    const all = buildDeckLayers({ ...base, sampler: sampler57 })
+      .find((l) => l.id === "infrastructure")!;
+    const hospitals = buildDeckLayers({
+      ...base,
+      sampler: sampler57,
+      infrastructureQuery: "HOSPITAL",
+    }).find((l) => l.id === "infrastructure")!;
+    const restored = buildDeckLayers({
+      ...base,
+      sampler: sampler57,
+      infrastructureQuery: "",
+    }).find((l) => l.id === "infrastructure")!;
+
+    expect((hospitals.props.data as typeof MOCK_INFRA).every((p) => p.category === "hospital" || p.name.toLowerCase().includes("hospital"))).toBe(true);
+    expect((hospitals.props.data as typeof MOCK_INFRA).length).toBeLessThan(
+      (all.props.data as typeof MOCK_INFRA).length,
+    );
+    expect((restored.props.data as typeof MOCK_INFRA).length).toBe(
+      (all.props.data as typeof MOCK_INFRA).length,
+    );
   });
 });

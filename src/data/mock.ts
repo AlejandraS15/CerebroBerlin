@@ -1,7 +1,6 @@
 /**
  * Datos simulados (Origen_de_Dato `mock`) usados como respaldo cuando una
- * fuente en vivo no responde, y datos de ejemplo (hotspots, infraestructura)
- * sin fuente oficial.
+ * fuente en vivo no responde, y fixtures de pruebas aisladas sin fuente oficial.
  *
  * Reglas de esta migración:
  * - Todo mock se posiciona en el Punto_de_Distrito del lago (`d.point`), no en
@@ -159,7 +158,7 @@ export const MOCK_HOURLY: HourlyPoint[] = Array.from({ length: 24 }).map((_, hou
 });
 
 // ─────────────────────────────────────────────────────────────
-// Puntos críticos / incidencias (datos de ejemplo, sin fuente)
+// Fixture de puntos críticos para pruebas aisladas; la aplicación usa InfraNode.
 // ─────────────────────────────────────────────────────────────
 const HOTSPOT_TYPES: Hotspot["type"][] = ["accidente", "obra", "congestion", "alerta"];
 export const MOCK_HOTSPOTS: Hotspot[] = DISTRICT_LIST.slice(0, 9).map((d, i) => ({
@@ -178,13 +177,12 @@ export const MOCK_HOTSPOTS: Hotspot[] = DISTRICT_LIST.slice(0, 9).map((d, i) => 
 }));
 
 // ─────────────────────────────────────────────────────────────
-// Infraestructura (datos de ejemplo, sin fuente)
+// Infraestructura de respaldo para pruebas aisladas.
 // ─────────────────────────────────────────────────────────────
 const INFRA_CATS: InfrastructurePoint["category"][] = [
   "hospital",
   "escuela",
   "cultura",
-  "energia",
   "agua",
 ];
 export const MOCK_INFRA: InfrastructurePoint[] = DISTRICT_LIST.flatMap((d, di) =>
@@ -196,5 +194,6 @@ export const MOCK_INFRA: InfrastructurePoint[] = DISTRICT_LIST.flatMap((d, di) =
       d.point[0] + (ci - 1) * 0.012,
       d.point[1] + (ci - 1) * 0.01,
     ] as [number, number],
+    osmId: `mock-${d.id}-${cat}`,
   })),
 );

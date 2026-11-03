@@ -45,6 +45,7 @@ export function MapContainer() {
   const { data, isLoading } = useCityData();
   const { data: mapStyle } = useMapStyle();
   const visibility = useCityStore((s) => s.layerVisibility);
+  const infrastructureQuery = useCityStore((s) => s.infrastructureQuery);
   const selectedHour = useCityStore((s) => s.selectedHour);
   const is3D = useCityStore((s) => s.is3D);
   const setSelectedDistrict = useCityStore((s) => s.setSelectedDistrict);
@@ -111,6 +112,7 @@ export function MapContainer() {
     return buildDeckLayers({
       data,
       visibility,
+      infrastructureQuery,
       hour: selectedHour,
       sampler,
       elevationVersion,
@@ -121,6 +123,7 @@ export function MapContainer() {
   }, [
     data,
     visibility,
+    infrastructureQuery,
     selectedHour,
     sampler,
     elevationVersion,

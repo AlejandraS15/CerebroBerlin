@@ -11,8 +11,15 @@ import territorioJson from "@lago/territorio.json";
 import poblacionJson from "@lago/poblacion.json";
 import verdeJson from "@lago/verde.json";
 import traficoJson from "@lago/trafico.json";
+import infraestructuraJson from "@lago/infraestructura.json";
 
-import type { DistrictCode, LakeTopic, SourceState, TrafficDetector } from "@/lib/types";
+import type {
+  DistrictCode,
+  InfrastructurePoint,
+  LakeTopic,
+  SourceState,
+  TrafficDetector,
+} from "@/lib/types";
 
 // ── Contrato_del_Lago ────────────────────────────────────────
 
@@ -146,6 +153,15 @@ export interface TraficoTema
     }
   > {}
 
+export interface InfraestructuraTema {
+  tema: "infraestructura";
+  probado: string;
+  fuentes: FuenteTema[];
+  cifras: { equipamientos: Cifra };
+  series: Record<string, never>;
+  puntos: InfrastructurePoint[];
+}
+
 // ── Temas tipados ────────────────────────────────────────────
 
 /*
@@ -157,8 +173,9 @@ export const territorio = territorioJson as TerritorioTema;
 export const poblacion = poblacionJson as PoblacionTema;
 export const verde = verdeJson as VerdeTema;
 export const trafico = traficoJson as TraficoTema;
+export const infraestructura = infraestructuraJson as InfraestructuraTema;
 
-export const themes = { territorio, poblacion, verde, trafico } as const;
+export const themes = { territorio, poblacion, verde, trafico, infraestructura } as const;
 
 /** Perfil horario de tráfico de la ciudad (24 valores, veh/h). */
 export const trafficProfile: readonly number[] = trafico.series.perfil_ciudad.valor;

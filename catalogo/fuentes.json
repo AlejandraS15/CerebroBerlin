@@ -1,5 +1,20 @@
 [
   {
+    "id": "berlin-simplesearch-markets",
+    "nombre": "Berliner und Brandenburger Wochen- und Trödelmärkte (SimpleSearch)",
+    "entidad": "Senatsverwaltung für Wirtschaft, Energie und Betriebe",
+    "url": "https://www.berlin.de/sen/web/service/maerkte-feste/wochen-troedelmaerkte/index.php",
+    "cobertura": "Mercados semanales, de productores, mercadillos y mini mercados con coordenadas",
+    "vigencia": "tiempo real",
+    "probado": "2026-11-03",
+    "estado": "caído",
+    "licencia": "Creative Commons Attribution (CC-BY)",
+    "personas": "no",
+    "proteccion": "ninguna: directorio público de establecimientos y horarios",
+    "uso": "ninguno: fuente registrada en Fuentes y huecos, pendiente de restaurar",
+    "nota": "La ruta SimpleSearch registrada responde HTTP 404; se conserva como hueco documentado y no se integra en el mapa."
+  },
+  {
     "id": "alkis-bezirke",
     "nombre": "ALKIS Berlin Bezirke (límites de distritos)",
     "entidad": "Senatsverwaltung für Stadtentwicklung, Bauen und Wohnen Berlin",
@@ -60,6 +75,21 @@
     "nota": "HTTP 200. Solo el código del proyecto declara licencia (Apache-2.0); los datos servidos no declaran licencia propia. Agrega fuentes de terceros; no se integra para no duplicar Open-Meteo."
   },
   {
+    "id": "infranode-traffic-reports",
+    "nombre": "InfraNode Live Berlin Traffic Reports (Mobilithek DATEX-II)",
+    "entidad": "Senatsverwaltung für Mobilität, Verkehr, Klimaschutz und Umwelt Berlin (SenMVKU), vía InfraNode",
+    "url": "https://infranode.dev/en/api/getLiveBerlinTrafficReports/",
+    "cobertura": "Incidencias, obras, bloqueos y congestión de tráfico en Berlín",
+    "vigencia": "tiempo real",
+    "probado": "2026-11-03",
+    "estado": "integrado",
+    "licencia": "Datenlizenz Deutschland – Namensnennung – Version 2.0",
+    "personas": "no",
+    "proteccion": "ninguna: eventos de tráfico agregados, sin datos personales",
+    "uso": "en vivo: capa de puntos críticos con incidencias, obras, bloqueos y congestión",
+    "nota": "Endpoint GET /api/v1/live/berlin/traffic-reports. La respuesta observada contiene un sobre live con payload.events y coordenadas WGS84; si la fuente no responde no se crean eventos simulados."
+  },
+  {
     "id": "luftguetemessnetz",
     "nombre": "Berliner Luftgütemessnetz (BLUME), API luftdaten.berlin.de",
     "entidad": "Senatsverwaltung für Mobilität, Verkehr, Klimaschutz und Umwelt Berlin, Abteilung II",
@@ -105,6 +135,21 @@
     "nota": "Uso gratuito no comercial. Consultada en tiempo de ejecución; si fallan los 12 distritos se usa el respaldo simulado etiquetado."
   },
   {
+    "id": "dwd-open-data-weather",
+    "nombre": "DWD Open Data (observaciones meteorológicas)",
+    "entidad": "Deutscher Wetterdienst (DWD)",
+    "url": "https://opendata.dwd.de/weather/",
+    "cobertura": "Observaciones meteorológicas vivas de estaciones Berlin-Dahlem, Berlin-Tempelhof y Berlin Brandenburg",
+    "vigencia": "tiempo real",
+    "probado": "2026-11-03",
+    "estado": "integrado",
+    "licencia": "Creative Commons Attribution 4.0 International (CC BY 4.0)",
+    "personas": "no",
+    "proteccion": "ninguna: mediciones meteorológicas de estaciones",
+    "uso": "en vivo: capa de clima por distrito, asignada a la estación DWD más cercana",
+    "nota": "La aplicación consulta los CSV BEOB de las estaciones DWD y conserva Open-Meteo como fallback técnico si las observaciones no están disponibles."
+  },
+  {
     "id": "open-meteo-meteo",
     "nombre": "Open-Meteo Weather Forecast API",
     "entidad": "Open-Meteo",
@@ -112,12 +157,12 @@
     "cobertura": "Pronóstico meteorológico por coordenada, Berlín",
     "vigencia": "tiempo real",
     "probado": "2026-10-07",
-    "estado": "integrado",
+    "estado": "candidato",
     "licencia": "API data is offered under the Attribution 4.0 International license (CC BY 4.0)",
     "personas": "no",
     "proteccion": "ninguna: valores de modelo por coordenada",
-    "uso": "en vivo: capa de clima, KPI de temperatura y curva de temperatura 24 h",
-    "nota": "Uso gratuito no comercial. Consultada en tiempo de ejecución; si falla se usa el respaldo simulado etiquetado."
+    "uso": "ninguno: reemplazada como fuente primaria de clima por DWD Open Data",
+    "nota": "Se conserva como alternativa técnica documentada; la capa de clima usa observaciones DWD."
   },
   {
     "id": "openaq",
@@ -213,16 +258,16 @@
     "id": "vbb-transport-rest",
     "nombre": "VBB transport.rest v6",
     "entidad": "transport.rest (derhuerst), datos de VBB Verkehrsverbund Berlin-Brandenburg",
-    "url": "https://v6.vbb.transport.rest",
+    "url": "https://v6.bvg.transport.rest",
     "cobertura": "Salidas y paradas de transporte público, Berlín-Brandenburgo",
     "vigencia": "tiempo real",
-    "probado": "2026-10-07",
-    "estado": "caído",
+    "probado": "2026-11-03",
+    "estado": "integrado",
     "licencia": "no declara",
     "personas": "no",
     "proteccion": "ninguna: horarios y paradas",
-    "uso": "ninguno: la capa de transporte muestra el respaldo simulado etiquetado mientras la fuente está caída",
-    "nota": "Error observado el 2026-10-07: HTTP 503 en 3 intentos (~30 s). Solo el código del wrapper declara licencia (ISC); los datos servidos no declaran licencia."
+    "uso": "en vivo: capa de movilidad con paradas U-Bahn, S-Bahn, tranvía y bus; salidas y retrasos de las paradas representativas",
+    "nota": "Endpoint operativo GET /locations/nearby en v6.bvg.transport.rest. La respuesta observada contiene 100 paradas cercanas, 87 con bus y 47 exclusivas de bus; /stops/{id}/departures devuelve líneas, salidas y retrasos en tiempo real. Solo el código del wrapper declara licencia (ISC); los datos servidos no declaran licencia."
   },
   {
     "id": "verkehrsdetektion",
@@ -253,5 +298,20 @@
     "proteccion": "conteos agregados por distrito",
     "uso": "ninguno: descartada",
     "nota": "Excluido: la consulta SPARQL de población por distrito devolvió 0 filas."
+  },
+  {
+    "id": "openstreetmap-daten-f-r-berlin",
+    "nombre": "OpenStreetMap Daten für Berlin",
+    "entidad": "OpenStreetMap / Geofabrik",
+    "url": "https://daten.berlin.de/datensaetze/openstreetmap-daten-f-r-berlin",
+    "cobertura": "Equipamientos públicos y puntos de interés de Berlín, extraídos de las capas OSM POI puntuales y poligonales",
+    "vigencia": "snapshot 2026-11-02",
+    "probado": "2026-11-03",
+    "estado": "integrado",
+    "licencia": "Open Data Commons Open Database License (ODbL)",
+    "personas": "no",
+    "proteccion": "ninguna: puntos de interés públicos sin datos personales",
+    "uso": "lago/infraestructura.json → capa de hospitales, educación, bibliotecas, museos, cultura, deporte y servicios",
+    "nota": "El snapshot se construye con el recurso berlin-latest-free.shp.zip de Geofabrik. Se filtran equipamientos con nombre dentro del BBOX de Berlín y se conserva el osmId para trazabilidad. Atribución: © OpenStreetMap contributors."
   }
 ]
