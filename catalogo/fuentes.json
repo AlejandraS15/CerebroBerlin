@@ -228,16 +228,16 @@
     "id": "vbb-transport-rest",
     "nombre": "VBB transport.rest v6",
     "entidad": "transport.rest (derhuerst), datos de VBB Verkehrsverbund Berlin-Brandenburg",
-    "url": "https://v6.vbb.transport.rest",
+    "url": "https://v6.bvg.transport.rest",
     "cobertura": "Salidas y paradas de transporte público, Berlín-Brandenburgo",
     "vigencia": "tiempo real",
-    "probado": "2026-10-07",
-    "estado": "caído",
+    "probado": "2026-11-03",
+    "estado": "integrado",
     "licencia": "no declara",
     "personas": "no",
     "proteccion": "ninguna: horarios y paradas",
-    "uso": "ninguno: la capa de transporte muestra el respaldo simulado etiquetado mientras la fuente está caída",
-    "nota": "Error observado el 2026-10-07: HTTP 503 en 3 intentos (~30 s). Solo el código del wrapper declara licencia (ISC); los datos servidos no declaran licencia."
+    "uso": "en vivo: capa de movilidad con paradas U-Bahn, S-Bahn, tranvía y bus; salidas y retrasos de las paradas representativas",
+    "nota": "Endpoint operativo GET /locations/nearby en v6.bvg.transport.rest. La respuesta observada contiene 100 paradas cercanas, 87 con bus y 47 exclusivas de bus; /stops/{id}/departures devuelve líneas, salidas y retrasos en tiempo real. Solo el código del wrapper declara licencia (ISC); los datos servidos no declaran licencia."
   },
   {
     "id": "verkehrsdetektion",

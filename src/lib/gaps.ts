@@ -60,9 +60,8 @@ const HUECOS_METRICAS: Gap[] = [
 
 // ── Fuentes caídas que se declaran como huecos ───────────────
 
-// Ids de fuentes cuya indisponibilidad debe aparecer en la Lista_de_Huecos
-// (19.2): VBB transport.rest (transporte) y Einwohner LOR CSV (F05).
-const FUENTES_CAIDAS_RELEVANTES = ["vbb-transport-rest", "einwohner-lor-f05"] as const;
+// Ids de fuentes cuya indisponibilidad debe aparecer en la Lista_de_Huecos.
+const FUENTES_CAIDAS_RELEVANTES = ["einwohner-lor-f05"] as const;
 
 /** Umbral: por debajo de este % la cobertura de edad se marca como parcial. */
 const COBERTURA_EDAD_COMPLETA = 100;
@@ -73,8 +72,8 @@ const COBERTURA_EDAD_COMPLETA = 100;
  * - Métricas retiradas sin fuente (edad mediana, demanda energética y uso
  *   horario de bicis).
  * - Cobertura parcial de edad: distritos cuyo `ageCoveragePct` < 100 %.
- * - Fuentes `caído` relevantes (VBB transport.rest y Einwohner LOR CSV), con
- *   el motivo tomado de la nota del catálogo.
+ * - Fuentes `caído` relevantes (Einwohner LOR CSV), con el motivo tomado de la
+ *   nota del catálogo.
  */
 export function buildGaps(
   catalog: readonly SourceCard[],

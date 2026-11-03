@@ -13,7 +13,7 @@ export const CONFIG = {
     process.env.NEXT_PUBLIC_TERRAIN_TILES_URL ||
     "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png",
   vbbApiBase:
-    process.env.NEXT_PUBLIC_VBB_API_BASE || "https://v6.vbb.transport.rest",
+    process.env.NEXT_PUBLIC_VBB_API_BASE || "https://v6.bvg.transport.rest",
   // Open-Meteo: APIs abiertas, sin token, con datos reales por coordenada.
   airQualityApiBase:
     process.env.NEXT_PUBLIC_AIR_QUALITY_API_BASE ||
