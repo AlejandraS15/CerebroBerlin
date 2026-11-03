@@ -16,8 +16,13 @@ interface EaqiPanelState {
  * - `sources`: fuentes y huecos de datos.
  */
 export type AppView = "city" | "analytics" | "sources";
+export type Theme = "dark" | "light";
 
 export interface CityState {
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
+  toggleTheme: () => void;
+
   /** Pestaña/vista activa del centro de mando. */
   activeView: AppView;
   setActiveView: (v: AppView) => void;
@@ -83,6 +88,10 @@ function initialVisibility(): Record<LayerId, boolean> {
  */
 export function createCityStore(): UseBoundStore<StoreApi<CityState>> {
   return create<CityState>((set) => ({
+    theme: "dark",
+    setTheme: (theme) => set({ theme }),
+    toggleTheme: () => set((s) => ({ theme: s.theme === "dark" ? "light" : "dark" })),
+
     activeView: "city",
     setActiveView: (v) => set({ activeView: v }),
 

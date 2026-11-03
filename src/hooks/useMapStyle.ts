@@ -4,7 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import type { StyleSpecification } from "maplibre-gl";
 import { CONFIG } from "@/lib/config";
 import { safeFetchJson } from "@/lib/http";
-import { buildCityStyle, fallbackCityStyle } from "@/lib/mapStyle";
+import { buildCityStyle, fallbackCityStyle, type MapTheme } from "@/lib/mapStyle";
+import { useCityStore } from "@/store/useCityStore";
 
 interface MapStyleResult {
   style: StyleSpecification;
@@ -12,11 +13,11 @@ interface MapStyleResult {
   degraded: boolean;
 }
 
-async function loadCityStyle(): Promise<MapStyleResult> {
+async function loadCityStyle(theme: MapTheme): Promise<MapStyleResult> {
   const base = await safeFetchJson<StyleSpecification>(CONFIG.mapStyleUrl);
   return base?.layers
-    ? { style: buildCityStyle(base), degraded: false }
-    : { style: fallbackCityStyle(), degraded: true };
+    ? { style: buildCityStyle(base, theme), degraded: false }
+    : { style: fallbackCityStyle(theme), degraded: true };
 }
 
 /**
@@ -24,9 +25,11 @@ async function loadCityStyle(): Promise<MapStyleResult> {
  * vista 2D/3D ya no recarga el estilo ni las teselas.
  */
 export function useMapStyle() {
+  const theme = useCityStore((state) => state.theme);
+
   return useQuery({
-    queryKey: ["map-style", CONFIG.mapStyleUrl],
-    queryFn: loadCityStyle,
+    queryKey: ["map-style", CONFIG.mapStyleUrl, theme],
+    queryFn: () => loadCityStyle(theme),
     staleTime: Infinity,
     gcTime: Infinity,
   });
