@@ -27,7 +27,6 @@ const source: Record<BlockId, Origin> = {
   hourly: "mock",
   hotspots: "example",
   infrastructure: "snapshot",
-  markets: "unavailable",
 };
 
 const dataset: CityDataset = {
@@ -40,18 +39,6 @@ const dataset: CityDataset = {
   weather: MOCK_WEATHER,
   hotspots: MOCK_HOTSPOTS,
   infrastructure: MOCK_INFRA,
-  markets: [
-    {
-      id: "market-1",
-      name: "Wochenmarkt Berlin",
-      category: "farmers",
-      address: "Alexanderplatz",
-      schedule: "Samstag",
-      organizer: "Berlin Markt",
-      position: [13.41, 52.52],
-      sourceUrl: "https://example.test/markets",
-    },
-  ],
   timeSeries: buildTimeSeries(trafficProfile, MOCK_HOURLY),
   source,
   fetchedAt: {},
@@ -67,7 +54,6 @@ const allVisible: Record<LayerId, boolean> = {
   demographics: true,
   infrastructure: true,
   hotspots: true,
-  markets: true,
 };
 
 // Sampler fijo: cota disponible (57 m) para comprobar la elevación por punto.
@@ -96,17 +82,6 @@ describe("buildDeckLayers", () => {
     expect(ids).toContain("weather");
     expect(ids).toContain("hotspots");
     expect(ids).toContain("infrastructure");
-    expect(ids).toContain("markets");
-  });
-
-  it("renders market storefront icons above the 3D map", () => {
-    const marketLayer = buildDeckLayers({ ...base, sampler: sampler57 }).find(
-      (layer) => layer.id === "markets",
-    );
-    expect(marketLayer?.props.visible).toBe(true);
-    expect(marketLayer?.props.parameters).toEqual({ depthCompare: "always" });
-    expect(marketLayer?.props.data).toHaveLength(1);
-    expect(marketLayer?.props.getIcon).toBeTypeOf("function");
   });
 
   it("does not include the removed synthetic air heatmap", () => {

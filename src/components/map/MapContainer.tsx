@@ -97,7 +97,6 @@ export function MapContainer() {
     for (const w of data.weather) pts.push(w.position);
     for (const h of data.hotspots) pts.push(h.position);
     for (const p of data.infrastructure) pts.push(p.position);
-    for (const m of data.markets) pts.push(m.position);
     return pts;
   }, [data]);
 

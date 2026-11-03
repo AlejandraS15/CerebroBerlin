@@ -9,7 +9,6 @@ import type {
   DistrictFeature,
   Hotspot,
   InfrastructurePoint,
-  MarketPoint,
   LayerId,
   MapTarget,
   TrafficDetector,
@@ -103,15 +102,6 @@ const SEVERITY_COLOR: Record<number, Color> = {
   3: [248, 113, 113],
 };
 
-const STOREFRONT_PATH =
-  '<path d="M7 5h20l2 7.5a3.5 3.5 0 0 1-2.8 3.43V27H7v-11.07A3.5 3.5 0 0 1 4.2 12.5L7 5Z" fill="#fff"/><path d="M6 5h22l2 7.5a3.5 3.5 0 0 1-7 0 3.5 3.5 0 0 1-7 0 3.5 3.5 0 0 1-7 0A3.5 3.5 0 0 1 2 12.5L6 5Z" fill="#fff"/><path d="M7 15.8h20V27H7V15.8Zm3 3v5h5v-5h-5Zm8 0h6v5h-6v-5Z" fill="#334155"/>';
-
-const MARKET_ICON_SVG: Record<MarketPoint["category"], string> = {
-  farmers: svgIcon("#fbbf24", STOREFRONT_PATH),
-  flea: svgIcon("#a78bfa", STOREFRONT_PATH),
-  "mini-market": svgIcon("#34d399", STOREFRONT_PATH),
-  market: svgIcon("#f59e0b", STOREFRONT_PATH),
-};
 
 /**
  * Construye el array de capas Deck.gl a partir del dataset, la visibilidad, la
@@ -401,34 +391,6 @@ export function buildDeckLayers({
       onHover: (info) => {
         const d = info.object as Hotspot | undefined;
         onHover(d ? { kind: "hotspot", id: d.id } : null);
-      },
-    }),
-  );
-
-  layers.push(
-    new IconLayer<MarketPoint>({
-      id: "markets",
-      data: data.markets,
-      visible: visibility.markets,
-      pickable: true,
-      parameters: { depthCompare: "always" },
-      getPosition: (d) => withElevation(d.position, sampler),
-      getIcon: (d) => ({
-        id: `market-${d.category}`,
-        url: MARKET_ICON_SVG[d.category],
-        width: 36,
-        height: 36,
-        anchorX: 18,
-        anchorY: 18,
-      }),
-      getSize: 30,
-      sizeUnits: "pixels",
-      sizeMinPixels: 24,
-      sizeMaxPixels: 42,
-      updateTriggers: posTrigger,
-      onHover: (info) => {
-        const d = info.object as MarketPoint | undefined;
-        onHover(d ? { kind: "market", id: d.id } : null);
       },
     }),
   );

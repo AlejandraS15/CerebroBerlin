@@ -62,8 +62,7 @@ export type LayerId =
   | "weather"
   | "demographics"
   | "infrastructure"
-  | "hotspots"
-  | "markets";
+  | "hotspots";
 
 /** Entrada de la leyenda visual de una capa: una muestra (color o icono) y qué significa. */
 export interface LayerLegendEntry {
@@ -289,18 +288,6 @@ export interface InfrastructurePoint {
   osmId: string;
 }
 
-/** Mercado publicado por el directorio SimpleSearch de Berlín. */
-export interface MarketPoint {
-  id: string;
-  name: string;
-  category: "farmers" | "flea" | "mini-market" | "market";
-  address: string;
-  schedule: string;
-  organizer: string;
-  position: [number, number];
-  sourceUrl: string;
-}
-
 // ── Series temporales ────────────────────────────────────────
 
 /** Valor horario de Open-Meteo (EAQI y temperatura) para la ciudad. */
@@ -356,7 +343,6 @@ export type BlockId =
   | "weather"
   | "hourly"
   | "hotspots"
-  | "markets"
   | "infrastructure";
 
 /** Resultado de un servicio: datos más su origen efectivo. */
@@ -379,7 +365,6 @@ export interface CityDataset {
   trafficDetectors: TrafficDetector[];
   weather: WeatherPoint[];
   hotspots: Hotspot[];
-  markets: MarketPoint[];
   infrastructure: InfrastructurePoint[];
   timeSeries: TimeSeriesPoint[];
   /** Origen efectivo de cada bloque (infraestructura procede del snapshot OSM). */
@@ -400,7 +385,6 @@ export type MapTargetKind =
   | "bike"
   | "weather"
   | "hotspot"
-  | "market"
   | "infra";
 
 /** Objeto del mapa identificado por tipo e id. */

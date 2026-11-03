@@ -17,7 +17,6 @@ export function SourceBadges() {
     ["Clima", "weather"],
     ["Bicis", "bikes"],
     ["Puntos críticos", "hotspots"],
-    ["Mercados", "markets"],
     ["Infraestructura", "infrastructure"],
   ];
 

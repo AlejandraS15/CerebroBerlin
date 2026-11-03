@@ -21,7 +21,6 @@ describe("fetchCityData (modo mock, offline)", () => {
     expect(data.weather.length).toBeGreaterThan(0);
     expect(data.transit.length).toBeGreaterThan(0);
     expect(data.bikes.length).toBeGreaterThan(0);
-    expect(data.markets).toEqual([]);
     expect(data.timeSeries.length).toBe(24);
   });
 
@@ -34,7 +33,6 @@ describe("fetchCityData (modo mock, offline)", () => {
     expect(data.source.traffic).toBe("snapshot");
     expect(data.source.hotspots).toBe("unavailable");
     expect(data.source.infrastructure).toBe("snapshot");
-    expect(data.source.markets).toBe("unavailable");
 
     // En modo mock las fuentes en vivo degradan a "mock".
     expect(data.source.air).toBe("mock");

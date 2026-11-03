@@ -6,12 +6,12 @@
     "url": "https://www.berlin.de/sen/web/service/maerkte-feste/wochen-troedelmaerkte/index.php",
     "cobertura": "Mercados semanales, de productores, mercadillos y mini mercados con coordenadas",
     "vigencia": "tiempo real",
-    "estado": "integrado",
+    "estado": "caído",
     "licencia": "Creative Commons Attribution (CC-BY)",
     "personas": "no",
     "proteccion": "ninguna: directorio público de establecimientos y horarios",
-    "uso": "en vivo: capa de mercados del mapa",
-    "nota": "Se consultan los formatos all.geojson y all.json de SimpleSearch; los registros sin coordenadas o fuera del BBOX de Berlín se descartan."
+    "uso": "ninguno: fuente registrada en Fuentes y huecos, pendiente de restaurar",
+    "nota": "La ruta SimpleSearch registrada responde HTTP 404; se conserva como hueco documentado y no se integra en el mapa."
   },
   {
     "id": "alkis-bezirke",
