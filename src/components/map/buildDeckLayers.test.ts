@@ -27,6 +27,7 @@ const source: Record<BlockId, Origin> = {
   hourly: "mock",
   hotspots: "example",
   infrastructure: "snapshot",
+  markets: "unavailable",
 };
 
 const dataset: CityDataset = {
@@ -39,6 +40,7 @@ const dataset: CityDataset = {
   weather: MOCK_WEATHER,
   hotspots: MOCK_HOTSPOTS,
   infrastructure: MOCK_INFRA,
+  markets: [],
   timeSeries: buildTimeSeries(trafficProfile, MOCK_HOURLY),
   source,
   fetchedAt: {},
@@ -54,6 +56,7 @@ const allVisible: Record<LayerId, boolean> = {
   demographics: true,
   infrastructure: true,
   hotspots: true,
+  markets: true,
 };
 
 // Sampler fijo: cota disponible (57 m) para comprobar la elevación por punto.
@@ -82,6 +85,7 @@ describe("buildDeckLayers", () => {
     expect(ids).toContain("weather");
     expect(ids).toContain("hotspots");
     expect(ids).toContain("infrastructure");
+    expect(ids).toContain("markets");
     expect(ids).not.toContain("air-heat");
   });
 

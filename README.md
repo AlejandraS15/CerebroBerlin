@@ -20,6 +20,7 @@ Interfaz moderna, responsiva y en **modo oscuro por defecto**.
 - **Línea de tiempo (24h)**: slider + reproducción automática que anima la actividad urbana y sincroniza los charts.
 - **Popups / Tooltips**: al pasar el cursor por estaciones/sensores y al hacer clic en distritos (Mitte, Kreuzberg, Pankow…).
 - **Datos en tiempo real con fallback**: cada servicio intenta la API pública y, si falla o no hay red, usa datos *mock* coherentes cuando existe un respaldo. Las incidencias y bloqueos no se simulan: si InfraNode no responde, la capa queda vacía y se marca como no disponible.
+- **Mercados en vivo**: mercadillos, mercados de productores y mini mercados se consultan desde la SimpleSearch oficial de Berlín y se filtran al BBOX de la ciudad.
 
 ---
 
@@ -110,6 +111,7 @@ berlin-digital-twin/
 | Cartografía base + edificios 3D | **OpenFreeMap** (OpenMapTiles / OpenStreetMap) | `lib/mapStyle.ts` |
 | Terreno (modelo de elevación) | **Mapzen / AWS Terrarium** | `lib/mapStyle.ts` |
 | Equipamientos urbanos (hospitales, colegios, bibliotecas, museos y más) | **OpenStreetMap vía Geofabrik** | `lago/infraestructura.json` |
+| Mercadillos, mercados de productores y mini mercados | **Berlin.de SimpleSearch** | `services/markets.ts` |
 
 > Los límites de distritos usan geometrías simplificadas empaquetadas para
 > funcionar *offline*. Para producción, sustitúyelas por los límites oficiales
@@ -233,6 +235,7 @@ Todas las variables son **opcionales**:
 | `NEXT_PUBLIC_BERLIN_OPENDATA_BASE` | CKAN de Berlín | `datenregister.berlin.de/api/3` |
 | `NEXT_PUBLIC_GBFS_URL` | Feed GBFS de micromovilidad | Nextbike |
 | `NEXT_PUBLIC_TRAFFIC_REPORTS_API_BASE` | Base de InfraNode para incidencias de tráfico | `https://infranode.dev` |
+| `NEXT_PUBLIC_MARKETS_API_BASE` | Endpoint base SimpleSearch de mercados | `https://www.berlin.de/sen/web/service/maerkte-feste/wochen-troedelmaerkte/index.php` |
 | `NEXT_PUBLIC_USE_MOCK_DATA` | Forzar datos mock (`true`/`false`) | `false` |
 
 Para trabajar **100% offline**, pon `NEXT_PUBLIC_USE_MOCK_DATA=true`.
@@ -244,6 +247,11 @@ Para trabajar **100% offline**, pon `NEXT_PUBLIC_USE_MOCK_DATA=true`.
 1. Añade su definición en `src/lib/layers.ts` (`LAYER_CATALOG`) y su `LayerId` en `src/lib/types.ts`.
 2. Crea/extiende un servicio en `src/lib/services/` y agrégalo a `cityData.ts`.
 3. Añade la capa Deck.gl correspondiente en `src/components/map/buildDeckLayers.ts`.
+
+La capa **Mercados** usa los formatos `all.geojson` y `all.json` de la
+[SimpleSearch API](https://berlinonline.github.io/open-data-handbuch/simplesearch-api/).
+Solo dibuja registros con coordenadas dentro de Berlín; si la API no responde,
+la capa queda vacía y se marca como no disponible.
 
 ### Actualizar infraestructura OSM
 

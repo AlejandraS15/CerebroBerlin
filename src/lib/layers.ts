@@ -162,6 +162,23 @@ export const LAYER_CATALOG: LayerCategory[] = [
     },
     defaultVisible: false,
   },
+  {
+    id: "markets",
+    label: "Mercados",
+    description:
+      "Mercadillos, mercados de productores y mini mercados publicados en vivo por la SimpleSearch de Berlín.",
+    icon: "🛒",
+    color: "#fbbf24",
+    legend: {
+      summary: "Cada marcador es un mercado publicado por el directorio oficial:",
+      entries: [
+        { color: "#fbbf24", meaning: "Mercado de productores / semanal" },
+        { color: "#a78bfa", meaning: "Mercadillo o antigüedades" },
+        { color: "#34d399", meaning: "Mini mercado" },
+      ],
+    },
+    defaultVisible: false,
+  },
 ];
 
 /** Vista 2D panorámica: toda la ciudad, cenital. */

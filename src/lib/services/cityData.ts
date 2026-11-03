@@ -2,7 +2,7 @@
  * Compone el snapshot completo de datos de la ciudad (`CityDataset`).
  *
  * Ejecuta en paralelo los servicios en vivo (aire, estaciones, horario, clima,
- * bicis, transporte); cada uno degrada a mock por su cuenta, así que esta
+ * bicis, transporte y mercados); cada uno degrada a mock por su cuenta, así que esta
  * función nunca falla. Los límites y el perfil histórico de tráfico vienen
  * del lago (`snapshot`); las incidencias se consultan en vivo desde InfraNode.
  * La serie de 24 h se arma con `buildTimeSeries(perfil, horario)`.
@@ -17,12 +17,13 @@ import { fetchBikeshare } from "./bikeshare";
 import { fetchWeather } from "./weather";
 import { fetchDistricts } from "./openData";
 import { fetchTrafficReports } from "./trafficReports";
+import { fetchMarkets } from "./markets";
 import { buildTimeSeries } from "./timeSeries";
 import { trafficProfile, trafficDetectors, infraestructura, lakeProbado } from "@/data/lake";
 
 export async function fetchCityData(): Promise<CityDataset> {
   const districts = fetchDistricts(); // síncrono (lago)
-  const [air, airStations, hourly, transit, bikes, weather, hotspots] = await Promise.all([
+  const [air, airStations, hourly, transit, bikes, weather, hotspots, markets] = await Promise.all([
     fetchAirQuality(),
     fetchAirStations(),
     fetchHourly(),
@@ -30,6 +31,7 @@ export async function fetchCityData(): Promise<CityDataset> {
     fetchBikeshare(),
     fetchWeather(),
     fetchTrafficReports(),
+    fetchMarkets(),
   ]);
 
   const timeSeries = buildTimeSeries(trafficProfile, hourly.data);
@@ -47,6 +49,7 @@ export async function fetchCityData(): Promise<CityDataset> {
     weather: weatherOrigin,
     hourly: hourly.origin,
     hotspots: hotspots.origin,
+    markets: markets.origin,
     infrastructure: "snapshot",
   };
 
@@ -61,6 +64,7 @@ export async function fetchCityData(): Promise<CityDataset> {
   setAt("airStations", airStations.fetchedAt);
   setAt("hourly", hourly.fetchedAt);
   setAt("hotspots", hotspots.fetchedAt);
+  setAt("markets", markets.fetchedAt);
 
   return {
     districts: districts.data,
@@ -71,6 +75,7 @@ export async function fetchCityData(): Promise<CityDataset> {
     trafficDetectors,
     weather: weather.data,
     hotspots: hotspots.data,
+    markets: markets.data,
     infrastructure: infraestructura.puntos,
     timeSeries,
     source,

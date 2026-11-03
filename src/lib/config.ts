@@ -32,6 +32,9 @@ export const CONFIG = {
     "https://gbfs.nextbike.net/maps/gbfs/v2/nextbike_bn/gbfs.json",
   trafficReportsApiBase:
     process.env.NEXT_PUBLIC_TRAFFIC_REPORTS_API_BASE || "https://infranode.dev",
+  marketsApiBase:
+    process.env.NEXT_PUBLIC_MARKETS_API_BASE ||
+    "https://www.berlin.de/sen/web/service/maerkte-feste/wochen-troedelmaerkte/index.php",
   useMockData: process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true",
 } as const;
 

@@ -19,6 +19,7 @@ import type {
   District,
   Hotspot,
   InfrastructurePoint,
+  MarketPoint,
   LayerId,
   MapTarget,
   MapTargetKind,
@@ -49,6 +50,7 @@ const TARGET_LAYER: Record<MapTargetKind, LayerId> = {
   bike: "mobility",
   weather: "weather",
   hotspot: "hotspots",
+  market: "markets",
   infra: "infrastructure",
 };
 
@@ -196,6 +198,21 @@ function infraTooltip(data: CityDataset, id: string): TooltipContent | null {
   return { target: { kind: "infra", id: p.id }, title: p.name, rows };
 }
 
+function marketTooltip(data: CityDataset, id: string): TooltipContent | null {
+  const market: MarketPoint | undefined = data.markets.find((x) => x.id === id);
+  if (!market) return null;
+  return {
+    target: { kind: "market", id: market.id },
+    title: market.name,
+    rows: [
+      { label: "Tipo", value: market.category },
+      { label: "Dirección", value: market.address || NO_VALUE },
+      { label: "Horario", value: market.schedule || NO_VALUE },
+      { label: "Organizador", value: market.organizer || NO_VALUE },
+    ],
+  };
+}
+
 /**
  * Contenido del tooltip para un objeto del mapa. Devuelve `null` si el objeto
  * no existe en el dataset. Compartido por el tooltip flotante y la tarjeta
@@ -234,6 +251,8 @@ function buildTooltip(
       return weatherTooltip(data, target.id);
     case "hotspot":
       return hotspotTooltip(data, target.id);
+    case "market":
+      return marketTooltip(data, target.id);
     case "infra":
       return infraTooltip(data, target.id);
     default:

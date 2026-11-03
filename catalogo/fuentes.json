@@ -1,5 +1,19 @@
 [
   {
+    "id": "berlin-simplesearch-markets",
+    "nombre": "Berliner und Brandenburger Wochen- und Trödelmärkte (SimpleSearch)",
+    "entidad": "Senatsverwaltung für Wirtschaft, Energie und Betriebe",
+    "url": "https://www.berlin.de/sen/web/service/maerkte-feste/wochen-troedelmaerkte/index.php",
+    "cobertura": "Mercados semanales, de productores, mercadillos y mini mercados con coordenadas",
+    "vigencia": "tiempo real",
+    "estado": "integrado",
+    "licencia": "Creative Commons Attribution (CC-BY)",
+    "personas": "no",
+    "proteccion": "ninguna: directorio público de establecimientos y horarios",
+    "uso": "en vivo: capa de mercados del mapa",
+    "nota": "Se consultan los formatos all.geojson y all.json de SimpleSearch; los registros sin coordenadas o fuera del BBOX de Berlín se descartan."
+  },
+  {
     "id": "alkis-bezirke",
     "nombre": "ALKIS Berlin Bezirke (límites de distritos)",
     "entidad": "Senatsverwaltung für Stadtentwicklung, Bauen und Wohnen Berlin",
