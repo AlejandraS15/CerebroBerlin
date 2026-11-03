@@ -58,7 +58,7 @@ export function DistrictPopup() {
   ): ProvenanceRef => ({ metric, origin, scope: district.name, ...extra });
 
   return (
-    <div className="absolute right-3 top-3 z-30 w-80 rounded-xl border border-base-500/60 bg-base-800/95 p-4 shadow-panel backdrop-blur">
+    <div className="absolute right-3 top-3 z-30 max-h-[calc(100%-1.5rem)] w-80 max-w-[calc(100%-1.5rem)] overflow-y-auto overscroll-contain rounded-xl border border-base-500/60 bg-base-800/95 p-4 shadow-panel backdrop-blur">
       <div className="mb-3 flex items-start justify-between">
         <div>
           <div className="text-[10px] uppercase tracking-wider text-accent">
@@ -224,5 +224,4 @@ function Metric({
     </div>
   );
 }
-
 
