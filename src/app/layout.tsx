@@ -13,7 +13,8 @@ export const metadata: Metadata = {
     "open data",
     "smart city",
     "VBB",
-    "OpenAQ",
+    "Open-Meteo",
+    "DWD",
   ],
 };
 

@@ -66,8 +66,10 @@ describe("fetchWeather", () => {
       },
     });
 
-    const { data, source } = await fetchWeather();
-    expect(source).toBe("live");
+    const { data, origin, sourceId, fetchedAt } = await fetchWeather();
+    expect(origin).toBe("live");
+    expect(sourceId).toBe("open-meteo-meteo");
+    expect(fetchedAt).not.toBeNull();
     const p = data[0];
     expect(p.temperature).toBeCloseTo(14.3, 1);
     expect(p.humidity).toBe(63);
@@ -78,8 +80,8 @@ describe("fetchWeather", () => {
 
   it("degrada a mock cuando falla la red", async () => {
     mocked.mockResolvedValue(null);
-    const { data, source } = await fetchWeather();
-    expect(source).toBe("mock");
+    const { data, origin } = await fetchWeather();
+    expect(origin).toBe("mock");
     expect(data).toBe(MOCK_WEATHER);
   });
 });

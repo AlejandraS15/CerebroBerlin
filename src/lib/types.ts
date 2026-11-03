@@ -42,6 +42,8 @@ export type MetricId =
 export interface ProvenanceRef {
   metric: MetricId;
   origin: Origin;
+  /** Permite resolver el proveedor efectivo cuando existe un fallback. */
+  sourceId?: string;
   vigencia?: string;
   /** Fecha_Probado del tema (snapshot). */
   probado?: string;
@@ -369,6 +371,8 @@ export interface CityDataset {
   timeSeries: TimeSeriesPoint[];
   /** Origen efectivo de cada bloque (infraestructura procede del snapshot OSM). */
   source: Record<BlockId, Origin>;
+  /** Fuente del catálogo usada efectivamente por cada bloque, si aplica. */
+  sourceId?: Partial<Record<BlockId, string>>;
   /** Momento de consulta de los bloques en vivo. */
   fetchedAt: Partial<Record<BlockId, string>>;
   lake: { probado: Record<LakeTopic, string> };

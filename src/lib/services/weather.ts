@@ -27,14 +27,23 @@ export function buildWeatherUrl(lat: number, lon: number): string {
 }
 
 /**
- * Clima real por distrito vía Open-Meteo Forecast (sin token). Consulta el
- * centroide de cada distrito en paralelo; degrada a mock si todo falla.
+ * Clima real por distrito: DWD es la fuente primaria y Open-Meteo el fallback
+ * técnico cuando las observaciones DWD no están disponibles.
  */
 export async function fetchWeather(): Promise<{
   data: WeatherPoint[];
-  source: "live" | "mock";
+  origin: "live" | "mock";
+  sourceId: "dwd-open-data-weather" | "open-meteo-meteo";
+  fetchedAt: string | null;
 }> {
-  if (CONFIG.useMockData) return { data: MOCK_WEATHER, source: "mock" };
+  if (CONFIG.useMockData) {
+    return {
+      data: MOCK_WEATHER,
+      origin: "mock",
+      sourceId: "dwd-open-data-weather",
+      fetchedAt: null,
+    };
+  }
 
   const dwdData = await fetchDwdObservations();
   if (dwdData.length > 0) {
@@ -53,7 +62,9 @@ export async function fetchWeather(): Promise<{
           updatedAt: observation.observedAt,
         };
       }),
-      source: "live",
+      origin: "live",
+      sourceId: "dwd-open-data-weather",
+      fetchedAt: new Date().toISOString(),
     };
   }
 
@@ -82,8 +93,18 @@ export async function fetchWeather(): Promise<{
 
   const data = results.filter((p): p is WeatherPoint => p !== null);
   return data.length > 0
-    ? { data, source: "live" }
-    : { data: MOCK_WEATHER, source: "mock" };
+    ? {
+        data,
+        origin: "live",
+        sourceId: "open-meteo-meteo",
+        fetchedAt: new Date().toISOString(),
+      }
+    : {
+        data: MOCK_WEATHER,
+        origin: "mock",
+        sourceId: "open-meteo-meteo",
+        fetchedAt: null,
+      };
 }
 
 function nearestStation(position: readonly [number, number]) {

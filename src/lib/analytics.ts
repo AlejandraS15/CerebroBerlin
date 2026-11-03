@@ -190,6 +190,7 @@ export function buildAnalytics(
       note: avgWind != null ? `Viento ${avgWind} km/h` : undefined,
       origin: weather.length > 0 ? data.source.weather : "mock",
       provenance: prov("temperature", data.source.weather, {
+        sourceId: data.sourceId?.weather,
         fetchedAt: data.fetchedAt.weather ?? undefined,
       }),
       tone:

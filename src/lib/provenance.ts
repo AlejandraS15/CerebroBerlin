@@ -40,7 +40,7 @@ export interface ProvenanceCard {
 export function resolveProvenance(ref: ProvenanceRef): ProvenanceCard | null {
   const metric = METRICS[ref.metric];
   if (!metric) return null;
-  const card = catalogById[metric.sourceId];
+  const card = catalogById[ref.sourceId ?? metric.sourceId];
   if (!card) return null;
 
   return {
@@ -118,7 +118,9 @@ function attributionFor(card: SourceCard): string {
     case DL_DE_ZERO:
       return "dl-de-zero-2.0 (sin atribución obligatoria)";
     default:
-      // CC0, "no declara", etc.: sin atribución obligatoria, se nombra la fuente.
+      if (card.licencia.toLowerCase().includes("no declara")) {
+        return `${card.nombre} (licencia no declarada: revisar términos)`;
+      }
       return `${card.nombre} (sin atribución obligatoria)`;
   }
 }
