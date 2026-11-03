@@ -6,6 +6,7 @@ import { useCityStore } from "@/store/useCityStore";
 
 export function Providers({ children }: { children: ReactNode }) {
   const theme = useCityStore((state) => state.theme);
+  const [themeInitialized, setThemeInitialized] = useState(false);
   const [client] = useState(
     () =>
       new QueryClient({
@@ -28,12 +29,17 @@ export function Providers({ children }: { children: ReactNode }) {
       if (savedTheme !== theme) {
         useCityStore.getState().setTheme(savedTheme);
       }
-      return;
+    } else {
+      document.documentElement.classList.toggle("dark", theme === "dark");
     }
+    setThemeInitialized(true);
+  }, []);
 
+  useEffect(() => {
+    if (!themeInitialized) return;
     document.documentElement.classList.toggle("dark", theme === "dark");
     localStorage.setItem("berlin-theme", theme);
-  }, [theme]);
+  }, [theme, themeInitialized]);
 
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
 }
