@@ -15,7 +15,7 @@ export const LAYER_CATALOG: LayerCategory[] = [
     id: "mobility",
     label: "Movilidad",
     description:
-      "Estaciones de transporte público y micromovilidad: cada bolita es una parada de U-Bahn/S-Bahn o una estación de bicis.",
+      "Estaciones de transporte público y micromovilidad: cada icono representa una parada o estación de bicis.",
     icon: "🚇",
     // Las bolitas de transporte se colorean por modo; el cian es la micromovilidad (bicis).
     color: "#22d3ee",

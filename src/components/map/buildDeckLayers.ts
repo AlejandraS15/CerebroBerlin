@@ -269,19 +269,25 @@ export function buildDeckLayers({
 
   // ── Movilidad: estaciones de transporte + micromovilidad ──
   layers.push(
-    new ScatterplotLayer<TransitStation>({
+    new IconLayer<TransitStation>({
       id: "transit",
       data: data.transit,
       visible: visibility.mobility,
       pickable: true,
-      radiusMinPixels: 4,
-      radiusMaxPixels: 14,
+      // Los iconos son una anotación de datos y deben quedar sobre los
+      // edificios/terreno al inclinar la cámara en 3D.
+      parameters: { depthCompare: "always" },
       getPosition: (d) => withElevation(d.position, sampler),
-      getRadius: 90,
-      getFillColor: (d) => MODE_COLOR[d.mode],
-      getLineColor: [255, 255, 255, 200],
-      lineWidthMinPixels: 1,
-      stroked: true,
+      getIcon: (d) => ({
+        id: `transit-${d.mode}`,
+        url: TRANSIT_ICON_SVG[d.mode],
+        width: 40,
+        height: 40,
+        anchorX: 20,
+        anchorY: 20,
+      }),
+      getSize: 32,
+      sizeUnits: "pixels",
       updateTriggers: posTrigger,
       onHover: (info) => {
         const d = info.object as TransitStation | undefined;
@@ -291,16 +297,23 @@ export function buildDeckLayers({
   );
 
   layers.push(
-    new ScatterplotLayer<BikeStation>({
+    new IconLayer<BikeStation>({
       id: "bikes",
       data: data.bikes,
       visible: visibility.mobility,
       pickable: true,
-      radiusMinPixels: 2,
-      radiusMaxPixels: 8,
+      parameters: { depthCompare: "always" },
       getPosition: (d) => withElevation(d.position, sampler),
-      getRadius: 45,
-      getFillColor: [34, 211, 238, 200],
+      getIcon: () => ({
+        id: "bike",
+        url: BIKE_ICON_SVG,
+        width: 40,
+        height: 40,
+        anchorX: 20,
+        anchorY: 20,
+      }),
+      getSize: 28,
+      sizeUnits: "pixels",
       updateTriggers: posTrigger,
       onHover: (info) => {
         const d = info.object as BikeStation | undefined;
@@ -410,6 +423,8 @@ export function buildDeckLayers({
       }),
       getSize: 30,
       sizeUnits: "pixels",
+      sizeMinPixels: 24,
+      sizeMaxPixels: 42,
       updateTriggers: posTrigger,
       onHover: (info) => {
         const d = info.object as MarketPoint | undefined;
@@ -474,6 +489,31 @@ const INFRA_ICON_SVG: Record<InfrastructurePoint["category"], string> = {
     '<path d="M18 7c5 6 8 10 8 14a8 8 0 0 1-16 0c0-4 3-8 8-14z" fill="#fff"/>',
   ),
 };
+
+/** Iconos SVG autocontenidos para evitar depender de fuentes dentro de WebGL. */
+const TRANSIT_ICON_SVG: Record<TransitStation["mode"], string> = {
+  u: svgIcon(
+    "#2563eb",
+    '<rect x="10" y="9" width="16" height="18" rx="4" fill="none" stroke="#fff" stroke-width="2.5"/><path d="M13 13h10M13 18h10M13 23h3m5 0h2" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="14" cy="29" r="2" fill="#fff"/><circle cx="22" cy="29" r="2" fill="#fff"/>',
+  ),
+  s: svgIcon(
+    "#16a34a",
+    '<path d="M11 8h14a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H11a3 3 0 0 1-3-3V11a3 3 0 0 1 3-3Z" fill="none" stroke="#fff" stroke-width="2.5"/><path d="M12 13h12M12 18h12M12 23h4m4 0h2" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="13" cy="29" r="2" fill="#fff"/><circle cx="23" cy="29" r="2" fill="#fff"/>',
+  ),
+  tram: svgIcon(
+    "#dc2626",
+    '<path d="M10 8h16a3 3 0 0 1 3 3v13a3 3 0 0 1-3 3H10a3 3 0 0 1-3-3V11a3 3 0 0 1 3-3Z" fill="none" stroke="#fff" stroke-width="2.5"/><path d="M10 16h19M14 21h2m8 0h2M13 29l-3 3m17-3 3 3M15 5l3 3 3-3" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+  ),
+  bus: svgIcon(
+    "#a855f7",
+    '<path d="M8 25V12c0-4 4-6 10-6s10 2 10 6v13a3 3 0 0 1-3 3H11a3 3 0 0 1-3-3Z" fill="none" stroke="#fff" stroke-width="2.5"/><path d="M9 15h18M12 21h3m6 0h3" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="13" cy="29" r="2" fill="#fff"/><circle cx="23" cy="29" r="2" fill="#fff"/>',
+  ),
+};
+
+const BIKE_ICON_SVG = svgIcon(
+  "#22d3ee",
+  '<circle cx="12" cy="25" r="5" fill="none" stroke="#fff" stroke-width="2"/><circle cx="25" cy="25" r="5" fill="none" stroke="#fff" stroke-width="2"/><path d="M12 25 17 14h5l3 11m-8-11 5 0m-8 0-3-4h5m-2 4h-3" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+);
 
 /** Envuelve el contenido SVG en un marcador circular de 36×36 como data URL. */
 function svgIcon(bg: string, inner: string): string {

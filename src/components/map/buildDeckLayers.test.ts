@@ -40,7 +40,18 @@ const dataset: CityDataset = {
   weather: MOCK_WEATHER,
   hotspots: MOCK_HOTSPOTS,
   infrastructure: MOCK_INFRA,
-  markets: [],
+  markets: [
+    {
+      id: "market-1",
+      name: "Wochenmarkt Berlin",
+      category: "farmers",
+      address: "Alexanderplatz",
+      schedule: "Samstag",
+      organizer: "Berlin Markt",
+      position: [13.41, 52.52],
+      sourceUrl: "https://example.test/markets",
+    },
+  ],
   timeSeries: buildTimeSeries(trafficProfile, MOCK_HOURLY),
   source,
   fetchedAt: {},
@@ -86,6 +97,20 @@ describe("buildDeckLayers", () => {
     expect(ids).toContain("hotspots");
     expect(ids).toContain("infrastructure");
     expect(ids).toContain("markets");
+  });
+
+  it("renders market storefront icons above the 3D map", () => {
+    const marketLayer = buildDeckLayers({ ...base, sampler: sampler57 }).find(
+      (layer) => layer.id === "markets",
+    );
+    expect(marketLayer?.props.visible).toBe(true);
+    expect(marketLayer?.props.parameters).toEqual({ depthCompare: "always" });
+    expect(marketLayer?.props.data).toHaveLength(1);
+    expect(marketLayer?.props.getIcon).toBeTypeOf("function");
+  });
+
+  it("does not include the removed synthetic air heatmap", () => {
+    const ids = buildDeckLayers({ ...base, sampler: sampler57 }).map((l) => l.id);
     expect(ids).not.toContain("air-heat");
   });
 
