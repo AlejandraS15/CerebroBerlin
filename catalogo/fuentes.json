@@ -147,7 +147,7 @@
     "personas": "no",
     "proteccion": "ninguna: mediciones meteorológicas de estaciones",
     "uso": "en vivo: capa de clima por distrito, asignada a la estación DWD más cercana",
-    "nota": "La aplicación consulta los CSV BEOB de las estaciones DWD y conserva Open-Meteo como fallback técnico si las observaciones no están disponibles."
+    "nota": "Fuente primaria activa para la capa de clima. La aplicación consulta los CSV BEOB de las estaciones DWD; Open-Meteo solo se usa como fallback técnico si no hay observaciones válidas."
   },
   {
     "id": "open-meteo-meteo",
@@ -156,13 +156,13 @@
     "url": "https://api.open-meteo.com/v1/forecast",
     "cobertura": "Pronóstico meteorológico por coordenada, Berlín",
     "vigencia": "tiempo real",
-    "probado": "2026-10-07",
-    "estado": "candidato",
+    "probado": "2026-11-03",
+    "estado": "integrado",
     "licencia": "API data is offered under the Attribution 4.0 International license (CC BY 4.0)",
     "personas": "no",
     "proteccion": "ninguna: valores de modelo por coordenada",
-    "uso": "ninguno: reemplazada como fuente primaria de clima por DWD Open Data",
-    "nota": "Se conserva como alternativa técnica documentada; la capa de clima usa observaciones DWD."
+    "uso": "fallback: clima por distrito y series horarias cuando DWD no responde",
+    "nota": "No es la fuente primaria de clima. Se consulta únicamente como fallback técnico; sus datos requieren atribución CC BY 4.0 según la licencia declarada por Open-Meteo."
   },
   {
     "id": "openaq",
@@ -267,7 +267,7 @@
     "personas": "no",
     "proteccion": "ninguna: horarios y paradas",
     "uso": "en vivo: capa de movilidad con paradas U-Bahn, S-Bahn, tranvía y bus; salidas y retrasos de las paradas representativas",
-    "nota": "Endpoint operativo GET /locations/nearby en v6.bvg.transport.rest. La respuesta observada contiene 100 paradas cercanas, 87 con bus y 47 exclusivas de bus; /stops/{id}/departures devuelve líneas, salidas y retrasos en tiempo real. Solo el código del wrapper declara licencia (ISC); los datos servidos no declaran licencia."
+    "nota": "Endpoint operativo GET /locations/nearby en v6.bvg.transport.rest. La respuesta observada contiene 100 paradas cercanas, 87 con bus y 47 exclusivas de bus; /stops/{id}/departures devuelve líneas, salidas y retrasos en tiempo real. El wrapper declara ISC, pero los datos servidos no declaran una licencia propia: no redistribuir respuestas ni asumir una licencia de datos sin confirmación."
   },
   {
     "id": "verkehrsdetektion",

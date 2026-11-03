@@ -14,6 +14,8 @@ export function Header({
   const is3D = useCityStore((s) => s.is3D);
   const toggle3D = useCityStore((s) => s.toggle3D);
   const activeView = useCityStore((s) => s.activeView);
+  const theme = useCityStore((s) => s.theme);
+  const toggleTheme = useCityStore((s) => s.toggleTheme);
 
   return (
     <header className="z-30 flex items-center justify-between gap-3 border-b border-base-500/50 bg-base-900/80 px-4 py-2.5 backdrop-blur">
@@ -46,6 +48,15 @@ export function Header({
       <ViewTabs />
 
       <div className="flex items-center gap-2">
+        <button
+          onClick={toggleTheme}
+          className="rounded-lg border border-base-500/50 px-2.5 py-1.5 text-xs font-medium text-slate-300 transition hover:bg-base-600 hover:text-slate-100"
+          aria-label={`Activar modo ${theme === "dark" ? "claro" : "oscuro"}`}
+          aria-pressed={theme === "light"}
+          title={`Activar modo ${theme === "dark" ? "claro" : "oscuro"}`}
+        >
+          {theme === "dark" ? "☀ Claro" : "☾ Oscuro"}
+        </button>
         <span className="hidden items-center gap-1.5 rounded-full border border-signal-good/40 bg-signal-good/10 px-2.5 py-1 text-[11px] text-signal-good lg:inline-flex">
           <span className="h-1.5 w-1.5 animate-pulseSoft rounded-full bg-signal-good" />
           En vivo

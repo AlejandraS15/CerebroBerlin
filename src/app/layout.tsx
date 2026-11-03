@@ -13,12 +13,13 @@ export const metadata: Metadata = {
     "open data",
     "smart city",
     "VBB",
-    "OpenAQ",
+    "Open-Meteo",
+    "DWD",
   ],
 };
 
 export const viewport: Viewport = {
-  themeColor: "#070b14",
+  themeColor: "#f8fafc",
   width: "device-width",
   initialScale: 1,
 };
@@ -28,7 +29,6 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Modo oscuro por defecto vía clase en <html>.
   return (
     <html lang="es" className="dark">
       <body>

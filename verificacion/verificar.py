@@ -35,7 +35,7 @@ CAMPOS_FICHA = (
 )
 ESTADOS = ("integrado", "candidato", "caído", "declarado", "excluido")
 PERSONAS = ("no", "conteos agregados por zona", "personas identificables", "texto libre")
-PREFIJO_EN_VIVO = "en vivo:"
+PREFIJOS_USO_ACTIVO = ("en vivo:", "fallback:")
 
 CLAVES_TEMA = ("tema", "probado", "fuentes", "cifras", "series")
 CAMPOS_FUENTE = ("id", "nombre", "url", "estado", "licencia")
@@ -177,9 +177,9 @@ def comprobar_catalogo(catalogo: Any, temas: dict[str, dict] | None = None) -> l
         if ficha.get("estado") == "integrado":
             en_lago = ident in ids_en_lago
             uso = ficha.get("uso")
-            en_vivo = isinstance(uso, str) and uso.startswith(PREFIJO_EN_VIVO)
-            problemas = [] if (en_lago or en_vivo) else [
-                "integrado sin Tema del lago que la cite y sin uso 'en vivo: …'"
+            uso_activo = isinstance(uso, str) and uso.startswith(PREFIJOS_USO_ACTIVO)
+            problemas = [] if (en_lago or uso_activo) else [
+                "integrado sin Tema del lago que la cite y sin uso 'en vivo:' o 'fallback:'"
             ]
             resultados.append(_resultado(f"catalogo {ident}: regla integrado", problemas))
 

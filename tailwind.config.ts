@@ -10,24 +10,30 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Paleta oscura tipo "gemelo digital / centro de mando"
         base: {
-          900: "#070b14",
-          800: "#0b1120",
-          700: "#111a2e",
-          600: "#1a2540",
-          500: "#243252",
+          900: "rgb(var(--color-base-900) / <alpha-value>)",
+          800: "rgb(var(--color-base-800) / <alpha-value>)",
+          700: "rgb(var(--color-base-700) / <alpha-value>)",
+          600: "rgb(var(--color-base-600) / <alpha-value>)",
+          500: "rgb(var(--color-base-500) / <alpha-value>)",
         },
         accent: {
-          DEFAULT: "#22d3ee",
-          soft: "#0e7490",
-          glow: "#67e8f9",
+          DEFAULT: "rgb(var(--color-accent) / <alpha-value>)",
+          soft: "rgb(var(--color-accent-soft) / <alpha-value>)",
+          glow: "rgb(var(--color-accent-glow) / <alpha-value>)",
         },
         signal: {
-          good: "#4ade80",
-          warn: "#facc15",
-          bad: "#f87171",
-          alert: "#fb7185",
+          good: "rgb(var(--color-signal-good) / <alpha-value>)",
+          warn: "rgb(var(--color-signal-warn) / <alpha-value>)",
+          bad: "rgb(var(--color-signal-bad) / <alpha-value>)",
+          alert: "rgb(var(--color-signal-alert) / <alpha-value>)",
+        },
+        slate: {
+          100: "rgb(var(--color-slate-100) / <alpha-value>)",
+          200: "rgb(var(--color-slate-200) / <alpha-value>)",
+          300: "rgb(var(--color-slate-300) / <alpha-value>)",
+          400: "rgb(var(--color-slate-400) / <alpha-value>)",
+          500: "rgb(var(--color-slate-500) / <alpha-value>)",
         },
       },
       fontFamily: {
@@ -35,7 +41,7 @@ const config: Config = {
       },
       boxShadow: {
         glow: "0 0 20px rgba(34, 211, 238, 0.25)",
-        panel: "0 8px 30px rgba(0, 0, 0, 0.5)",
+        panel: "0 8px 30px rgb(0 0 0 / var(--shadow-panel-opacity))",
       },
       backdropBlur: {
         xs: "2px",

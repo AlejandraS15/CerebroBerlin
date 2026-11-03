@@ -35,7 +35,7 @@ export async function fetchCityData(): Promise<CityDataset> {
   const timeSeries = buildTimeSeries(trafficProfile, hourly.data);
 
   // `fetchWeather` aún devuelve { data, source }: se normaliza su origen.
-  const weatherOrigin: Origin = weather.source === "live" ? "live" : "mock";
+  const weatherOrigin: Origin = weather.origin;
 
   const source: Record<BlockId, Origin> = {
     districts: districts.origin,
@@ -49,6 +49,9 @@ export async function fetchCityData(): Promise<CityDataset> {
     hotspots: hotspots.origin,
     infrastructure: "snapshot",
   };
+  const sourceId: Partial<Record<BlockId, string>> = {
+    weather: weather.sourceId,
+  };
 
   const fetchedAt: Partial<Record<BlockId, string>> = {};
   const setAt = (id: BlockId, at: string | null) => {
@@ -59,6 +62,7 @@ export async function fetchCityData(): Promise<CityDataset> {
   setAt("bikes", bikes.fetchedAt);
   setAt("air", air.fetchedAt);
   setAt("airStations", airStations.fetchedAt);
+  setAt("weather", weather.fetchedAt);
   setAt("hourly", hourly.fetchedAt);
   setAt("hotspots", hotspots.fetchedAt);
 
@@ -74,6 +78,7 @@ export async function fetchCityData(): Promise<CityDataset> {
     infrastructure: infraestructura.puntos,
     timeSeries,
     source,
+    sourceId,
     fetchedAt,
     lake: { probado: lakeProbado },
   };

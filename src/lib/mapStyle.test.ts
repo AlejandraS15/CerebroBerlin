@@ -60,6 +60,21 @@ describe("buildCityStyle", () => {
     ]);
     expect(base.terrain).toBeUndefined();
   });
+
+  it("usa una paleta clara para el cielo y los edificios", () => {
+    const style = buildCityStyle(base, "light");
+    expect(style.sky?.["sky-color"]).toBe("#e0f2fe");
+    expect(style.layers.find((l) => l.id === "background")?.paint).toMatchObject({
+      "background-color": "#f8fafc",
+    });
+    expect(style.layers.find((l) => l.id === "water")?.paint).toMatchObject({
+      "fill-color": "#dbeafe",
+    });
+    const buildings = style.layers.find((l) => l.id === "buildings-3d");
+    expect(buildings?.type === "fill-extrusion" && buildings.paint?.["fill-extrusion-color"]).toContain(
+      "#cbd5e1",
+    );
+  });
 });
 
 describe("fallbackCityStyle", () => {

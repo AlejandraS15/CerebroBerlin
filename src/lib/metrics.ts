@@ -144,8 +144,8 @@ export const METRICS: Record<MetricId, MetricDef> = {
     id: "temperature",
     label: "Temperatura",
     unit: "°C",
-    definition: "temperatura del aire a 2 m del modelo Open-Meteo en el punto del distrito",
-    sourceId: "open-meteo-meteo",
-    vigencia: vigenciaCatalogo("open-meteo-meteo"),
+    definition: "temperatura, humedad y viento de la observación DWD más cercana al distrito",
+    sourceId: "dwd-open-data-weather",
+    vigencia: vigenciaCatalogo("dwd-open-data-weather"),
   },
 };

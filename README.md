@@ -81,10 +81,12 @@ berlin-digital-twin/
 │   │   ├── mapStyle.ts          # Estilo 3D: terreno, relieve, edificios, cielo
 │   │   ├── types.ts             # Tipos centrales
 │   │   └── services/
-│   │       ├── airQuality.ts    # OpenAQ
+│   │       ├── airQuality.ts    # Open-Meteo Air Quality
+│   │       ├── luftguete.ts     # BLUME / luftdaten.berlin.de
+│   │       ├── dwdWeather.ts    # Observaciones DWD
 │   │       ├── transit.ts       # VBB / BVG (transport.rest)
 │   │       ├── bikeshare.ts     # GBFS (micromovilidad)
-│   │       ├── openData.ts      # daten.berlin.de (CKAN)
+│   │       ├── openData.ts      # Descubrimiento CKAN + snapshots del lago
 │   │       └── cityData.ts      # Agregador de todos los servicios
 │   └── store/
 │       └── useCityStore.ts      # Estado global (Zustand)
@@ -97,20 +99,30 @@ berlin-digital-twin/
 
 ---
 
-## 🌐 Fuentes de datos abiertos
+## 🌐 Fuentes que usa la aplicación
 
-| Dominio | Fuente | Servicio |
-|---------|--------|----------|
-| Transporte público (U/S-Bahn, bus) + salidas en tiempo real | **BVG / VBB** vía [`v6.bvg.transport.rest`](https://v6.bvg.transport.rest) | `services/transit.ts` |
-| Calidad del aire (PM2.5, NO2, O3, AQI europeo) | **Open-Meteo Air Quality** | `services/airQuality.ts` |
-| Clima (temperatura, humedad, viento) | **DWD Open Data**, observaciones vivas de estaciones de Berlín | `services/dwdWeather.ts`, `services/weather.ts` |
-| Micromovilidad (bicis/scooters) | **GBFS** (Nextbike/TIER…) | `services/bikeshare.ts` |
-| Incidencias, obras, bloqueos y congestión | **InfraNode** (SenMVKU, DATEX-II) | `services/trafficReports.ts` |
-| Catastro, demografía, uso de suelo | **Datenportal Berlin** (`daten.berlin.de` / CKAN) | `services/openData.ts` |
-| Cartografía base + edificios 3D | **OpenFreeMap** (OpenMapTiles / OpenStreetMap) | `lib/mapStyle.ts` |
-| Terreno (modelo de elevación) | **Mapzen / AWS Terrarium** | `lib/mapStyle.ts` |
-| Equipamientos urbanos (hospitales, colegios, bibliotecas, museos y más) | **OpenStreetMap vía Geofabrik** | `lago/infraestructura.json` |
-| Mercadillos, mercados de productores y mini mercados | **Berlin.de SimpleSearch** | Catálogo de fuentes y huecos |
+El catálogo legal único está en [`catalogo/fuentes.json`](catalogo/fuentes.json).
+La aplicación solo consume las fuentes siguientes; los snapshots del directorio
+`lago/` conservan una referencia mínima y el verificador exige que coincida con
+el catálogo.
+
+| Dominio | Fuente primaria usada | Fallback o función | Código |
+|---------|-----------------------|--------------------|--------|
+| Transporte público | VBB/BVG vía [`transport.rest`](https://v6.bvg.transport.rest) | Mock etiquetado si falla | `services/transit.ts` |
+| Calidad del aire por distrito | [Open-Meteo Air Quality](https://open-meteo.com/en/docs/air-quality-api) | Mock etiquetado si fallan todas las consultas | `services/airQuality.ts` |
+| Estaciones de aire | BLUME / [luftdaten.berlin.de](https://luftdaten.berlin.de) | Mock etiquetado | `services/luftguete.ts` |
+| Clima actual | [DWD Open Data](https://opendata.dwd.de/weather/) | Open-Meteo Forecast; después mock | `services/dwdWeather.ts`, `services/weather.ts` |
+| Serie horaria | Open-Meteo Air Quality + Forecast | Mock solo si ambas APIs fallan | `services/hourly.ts` |
+| Bicicletas compartidas | Feed GBFS de Nextbike | Mock etiquetado | `services/bikeshare.ts` |
+| Incidencias de tráfico | InfraNode, datos SenMVKU/DATEX-II | Capa vacía `unavailable`, nunca eventos sintéticos | `services/trafficReports.ts` |
+| Distritos, población, uso del suelo y detectores | Snapshots oficiales del lago (ALKIS, Umweltatlas, SenMVKU) | No aplica: snapshot versionado | `lago/*.json` |
+| Equipamientos urbanos | OpenStreetMap vía Geofabrik | No aplica: snapshot versionado | `lago/infraestructura.json` |
+| Mapa base y edificios 3D | OpenFreeMap / OpenStreetMap | Estilo configurable | `lib/mapStyle.ts` |
+| Relieve 3D | Mapzen/AWS Terrarium | Terreno degradado si no carga | `lib/mapStyle.ts` |
+
+No se usan OpenAQ, Wikidata, UBA Air Data, SimpleSearch ni el endpoint
+meteorológico de InfraNode. Permanecen registrados en el catálogo únicamente
+como fuentes excluidas, caídas o candidatas, no como dependencias activas.
 
 > Los límites de distritos usan geometrías simplificadas empaquetadas para
 > funcionar *offline*. Para producción, sustitúyelas por los límites oficiales
@@ -285,7 +297,18 @@ El `LayerController` y el store la recogerán automáticamente.
 
 ---
 
-## 📜 Licencia y atribución
+## 📜 Licencias y atribución
 
-Proyecto de demostración. Respeta las licencias de las fuentes de datos:
-**© OpenStreetMap contributors**, VBB, OpenAQ y el Datenportal Berlin.
+La licencia del proyecto no sustituye las licencias de los datos. La interfaz
+incluye atribuciones derivadas del catálogo: **© OpenStreetMap contributors**,
+OpenFreeMap, Open-Meteo, DWD y las atribuciones requeridas por las licencias
+alemanas de datos abiertos. Para snapshots de Berlín se conserva la referencia
+a la ficha oficial y a su fecha de comprobación.
+
+VBB/transport.rest y las teselas de relieve Terrarium aparecen como fuentes
+operativas, pero sus fichas indican que no declaran una licencia de datos
+propia. Por precaución, el proyecto solo las consulta en tiempo de ejecución,
+no redistribuye sus respuestas y muestra “licencia no declarada: revisar
+términos” en lugar de afirmar que no requieren atribución. Antes de publicar
+un producto comercial o redistribuir cachés, hay que obtener confirmación de
+sus términos de uso.

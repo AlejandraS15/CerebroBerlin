@@ -12,7 +12,7 @@ import { SourceBadges } from "@/components/panels/SourceBadges";
 export function SourcesView() {
   return (
     <div className="h-full flex-1 overflow-y-auto bg-base-900">
-      <div className="mx-auto w-full max-w-4xl space-y-6 p-4 md:p-6">
+      <div className="mx-auto w-full max-w-[98%] space-y-6 p-4 md:p-6">
         <header>
           <h1 className="text-lg font-semibold text-slate-100">Fuentes y huecos de datos</h1>
           <p className="text-xs text-slate-400">

@@ -32,13 +32,13 @@ const NO_DATA_COLOR = "#475569";
 
 const chartTooltip = {
   contentStyle: {
-    background: "#0b1120",
-    border: "1px solid #243252",
+    background: "var(--chart-tooltip-bg)",
+    border: "1px solid var(--chart-tooltip-border)",
     borderRadius: 8,
     fontSize: 12,
-    color: "#e2e8f0",
+    color: "rgb(var(--color-slate-200))",
   },
-  labelStyle: { color: "#94a3b8" },
+  labelStyle: { color: "var(--chart-tick)" },
 };
 
 /**
@@ -91,23 +91,23 @@ export function AnalyticsPanel({
           <ComposedChart data={data.timeSeries} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="gTraffic" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#22d3ee" stopOpacity={0.6} />
-                <stop offset="100%" stopColor="#22d3ee" stopOpacity={0} />
+                <stop offset="0%" stopColor="var(--chart-accent)" stopOpacity={0.6} />
+                <stop offset="100%" stopColor="var(--chart-accent)" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <XAxis dataKey="label" tick={{ fontSize: 9, fill: "#64748b" }} interval={5} />
-            <YAxis tick={{ fontSize: 9, fill: "#64748b" }} width={28} />
+            <XAxis dataKey="label" tick={{ fontSize: 9, fill: "var(--chart-tick)" }} interval={5} />
+            <YAxis tick={{ fontSize: 9, fill: "var(--chart-tick)" }} width={28} />
             <Tooltip {...chartTooltip} />
             <ReferenceLine
               x={`${String(hour).padStart(2, "0")}:00`}
-              stroke="#f59e0b"
+              stroke="var(--chart-orange)"
               strokeDasharray="3 3"
             />
             <Area
               type="monotone"
               dataKey="trafficIndex"
               name="Tráfico"
-              stroke="#22d3ee"
+              stroke="var(--chart-accent)"
               fill="url(#gTraffic)"
               strokeWidth={2}
               connectNulls
@@ -116,7 +116,7 @@ export function AnalyticsPanel({
               type="monotone"
               dataKey="aqi"
               name="EAQI"
-              stroke="#a78bfa"
+              stroke="var(--chart-purple)"
               strokeWidth={2}
               dot={false}
               connectNulls
@@ -125,7 +125,7 @@ export function AnalyticsPanel({
               type="monotone"
               dataKey="temperature"
               name="Temp. (°C)"
-              stroke="#f59e0b"
+              stroke="var(--chart-orange)"
               strokeWidth={2}
               dot={false}
               connectNulls
@@ -134,9 +134,9 @@ export function AnalyticsPanel({
         </ResponsiveContainer>
         <Legend
           items={[
-            { label: "Tráfico (índice)", color: "#22d3ee" },
-            { label: "EAQI", color: "#a78bfa" },
-            { label: "Temperatura", color: "#f59e0b" },
+            { label: "Tráfico (índice)", color: "var(--chart-accent)" },
+            { label: "EAQI", color: "var(--chart-purple)" },
+            { label: "Temperatura", color: "var(--chart-orange)" },
           ]}
         />
       </ChartCard>
@@ -191,13 +191,13 @@ export function AnalyticsPanel({
             >
               <XAxis
                 dataKey="name"
-                tick={{ fontSize: 8, fill: "#64748b" }}
+                tick={{ fontSize: 8, fill: "var(--chart-tick)" }}
                 interval={0}
                 angle={-30}
                 textAnchor="end"
                 height={34}
               />
-              <YAxis tick={{ fontSize: 9, fill: "#64748b" }} width={26} />
+              <YAxis tick={{ fontSize: 9, fill: "var(--chart-tick)" }} width={26} />
               <Tooltip {...chartTooltip} content={<AqiBarTooltip />} />
               <Bar dataKey="aqi" radius={[3, 3, 0, 0]}>
                 {analytics.aqiByDistrict.map((b, i) => (
@@ -228,11 +228,11 @@ export function AnalyticsPanel({
             layout="vertical"
             margin={{ top: 0, right: 8, left: 4, bottom: 0 }}
           >
-            <XAxis type="number" tick={{ fontSize: 9, fill: "#64748b" }} />
+            <XAxis type="number" tick={{ fontSize: 9, fill: "var(--chart-tick)" }} />
             <YAxis
               type="category"
               dataKey="name"
-              tick={{ fontSize: 9, fill: "#94a3b8" }}
+              tick={{ fontSize: 9, fill: "var(--chart-tick)" }}
               width={70}
             />
             <Tooltip {...chartTooltip} />
@@ -305,7 +305,7 @@ function SimLabel(props: {
       y={y - 2}
       textAnchor="middle"
       fontSize={8}
-      fill="#fbbf24"
+      fill="rgb(var(--color-signal-warn))"
     >
       sim.
     </text>
@@ -324,10 +324,12 @@ function AqiBarTooltip({
   const bar = payload[0].payload;
   return (
     <div style={chartTooltip.contentStyle}>
-      <div style={{ color: "#94a3b8" }}>{bar.name}</div>
+      <div style={{ color: "var(--chart-tick)" }}>{bar.name}</div>
       <div>EAQI: {bar.aqi != null ? bar.aqi : NO_DATA}</div>
       {bar.band && <div>{bar.band.label}</div>}
-      {bar.origin === "mock" && <div style={{ color: "#fbbf24" }}>⚠ simulado</div>}
+      {bar.origin === "mock" && (
+        <div style={{ color: "rgb(var(--color-signal-warn))" }}>⚠ simulado</div>
+      )}
     </div>
   );
 }
